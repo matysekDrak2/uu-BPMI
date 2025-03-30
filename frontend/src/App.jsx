@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Login from './components/Login'
 import Register from './components/Register'
+import Dashboard from './components/Dashboard'
 import './App.css'
 
 /**
@@ -11,13 +12,44 @@ import './App.css'
 function App() {
     const [currentPage, setCurrentPage] = useState('login')
 
+    useEffect(() => {
+        // Kontrola přihlášení při načtení stránky
+        if (localStorage.getItem('sessionId')) {
+            setCurrentPage('dashboard')
+        }
+
+        // Event listener pro přepínání na dashboard
+        const handleSwitchToDashboard = () => {
+            setCurrentPage('dashboard')
+        }
+
+        window.switchToDashboard = function () {
+            window.dispatchEvent(new Event('switchToDashboard'));
+        };
+
+        window.addEventListener('switchToDashboard', handleSwitchToDashboard)
+
+        return () => {
+            window.removeEventListener('switchToDashboard', handleSwitchToDashboard)
+        }
+    }, [])
+
+    const renderPage = () => {
+        switch (currentPage) {
+            case 'login':
+                return <Login onSwitchToRegister={() => setCurrentPage('register')} />
+            case 'register':
+                return <Register onSwitchToLogin={() => setCurrentPage('login')} />
+            case 'dashboard':
+                return <Dashboard />
+            default:
+                return <Login onSwitchToRegister={() => setCurrentPage('register')} />
+        }
+    }
+
     return (
         <div className="app-container">
-            {currentPage === 'login' ? (
-                <Login onSwitchToRegister={() => setCurrentPage('register')} />
-            ) : (
-                <Register onSwitchToLogin={() => setCurrentPage('login')} />
-            )}
+            {renderPage()}
         </div>
     )
 }

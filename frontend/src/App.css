@@ -116,3 +116,20 @@ form {
     justify-content: center;
     margin: 15px 0;
 }
+
+.success-message {
+    background-color: #dcfce7;
+    color: #166534;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    font-size: 0.85rem;
+}
+
+.hint-text {
+    color: #6b7280;
+    font-size: 0.8rem;
+    margin-top: -10px;
+    margin-bottom: 10px;
+    text-align: left;
+}
