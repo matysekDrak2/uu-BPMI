@@ -13,7 +13,7 @@ const user_login_tmpl = {
     properties: {
         name: { type: 'string', maxLength: 80},
         email: { type: 'string', format: 'email', maxLength: 200 },
-        password: { type: 'integer'}
+        password: { type: 'string' }
     },
     required: ['name', 'email', 'password'],
     additionalProperties: false
