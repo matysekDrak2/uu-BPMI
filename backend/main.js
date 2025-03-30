@@ -14,3 +14,5 @@ app.listen(port, () => {
     console.log('Listening on port ' + port)
     console.log('Proc CWD ' + process.cwd())
 })
+
+module.exports = app;
