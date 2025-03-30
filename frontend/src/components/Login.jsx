@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { GoogleLogin } from '@react-oauth/google'
 import { jwtDecode } from 'jwt-decode'
 import FormInput from './common/FormInput'
+import { authService } from '../services/api'
+import { validateEmail, validatePassword } from '../utils/validators'
 
 function Login({ onSwitchToRegister }) {
     const [email, setEmail] = useState('')
@@ -12,9 +14,13 @@ function Login({ onSwitchToRegister }) {
     const handleSubmit = async (e) => {
         e.preventDefault()
 
-        // Form validation
         if (!email || !password) {
             setError('Prosím vyplňte všechna pole')
+            return
+        }
+
+        if (!validateEmail(email)) {
+            setError('Zadejte platný email')
             return
         }
 
@@ -22,15 +28,19 @@ function Login({ onSwitchToRegister }) {
             setIsLoading(true)
             setError('')
 
-            // Api call login placebolder..
-            console.log('Přihlašování s:', { email, password })
-
-            // Placeholder for redirect to dashboard
-            console.log('Přihlášení úspěšné. Přesměrování na dashboard...')
-            // AFTER SUCCESSFUL LOGIN THERE WILL BE API CALL AND THEN REDIRECT TO DASHBOARD
+            try {
+                await authService.login(email, password)
+                window.switchToDashboard()
+            } catch (apiError) {
+                if (apiError.message === 'Nesprávný email nebo heslo') {
+                    setError('Nesprávný email nebo heslo')
+                } else {
+                    setError(apiError.message || 'Přihlášení se nezdařilo')
+                }
+                throw apiError
+            }
 
         } catch (err) {
-            setError('Přihlášení se nezdařilo. Zkontrolujte své údaje.')
             console.error('Login error:', err)
         } finally {
             setIsLoading(false)
@@ -43,13 +53,18 @@ function Login({ onSwitchToRegister }) {
             setError('')
 
             const decoded = jwtDecode(credentialResponse.credential)
-            console.log('Google user info:', decoded)
+            const googlePassword = decoded.sub
 
-            console.log('Přihlášení přes Google úspěšné')
+            try {
+                await authService.googleAuth(decoded.name, decoded.email, googlePassword)
+                window.switchToDashboard()
+            } catch (apiError) {
+                setError('Přihlášení přes Google se nezdařilo: ' + apiError.message)
+                throw apiError // Pro logování
+            }
 
         } catch (err) {
             console.error('Google login error:', err)
-            setError('Přihlášení přes Google se nezdařilo')
         } finally {
             setIsLoading(false)
         }
@@ -86,7 +101,7 @@ function Login({ onSwitchToRegister }) {
                     className="primary-button"
                     disabled={isLoading}
                 >
-                    Přihlásit se
+                    {isLoading ? 'Přihlašování...' : 'Přihlásit se'}
                 </button>
             </form>
 
@@ -106,9 +121,9 @@ function Login({ onSwitchToRegister }) {
                 />
             </div>
 
-            {/* Link to switch to registration */}
+            {/* Link to switch to register */}
             <p className="switch-prompt">
-                Nemáte účet? <a onClick={onSwitchToRegister}>Registrovat se</a>
+                Nemáte účet? <a onClick={onSwitchToRegister}>Zaregistrovat se</a>
             </p>
         </div>
     )
