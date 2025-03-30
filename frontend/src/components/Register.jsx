@@ -26,16 +26,46 @@ function Register({ onSwitchToLogin }) {
             setIsLoading(true)
             setError('')
 
-            console.log('Registrace uživatele:', { name, email, password })
-            // ON SUCCESSFUL REGISTRATION THERE WILL BE API CALL AND THEN REDIRECT TO LOGIN
-            
-            onSwitchToLogin()
+            const response = await fetch('http://localhost:8080/api/v1/user/signin', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name,
+                    email,
+                    password
+                }),
+            })
+
+            // DONT FORGET TO REMOVE THIS LINE IN PRODUCTION
+            console.log('Odesílám data:', { name, email, password: password });
+
+            if (!response.ok) {
+                const responseText = await response.text();
+                let errorMessage = responseText || 'Registrace selhala';
+
+                // Pokud to vypadá jako JSON, zkusíme to parsovat
+                if (responseText && (responseText.startsWith('{') || responseText.startsWith('['))) {
+                    try {
+                        const errorData = JSON.parse(responseText);
+                        errorMessage = JSON.stringify(errorData);
+                    } catch (e) {
+                        console.log('Error parsing JSON:', e);
+                    }
+                }
+
+                throw new Error(errorMessage);
+            }
+
+            console.log('Registrace úspěšná');
+            onSwitchToLogin();
 
         } catch (err) {
-            setError('Registrace se nezdařila. Zkuste to prosím znovu.')
-            console.error('Registration error:', err)
+            setError('Registrace se nezdařila: ' + err.message);
+            console.error('Registration error:', err);
         } finally {
-            setIsLoading(false)
+            setIsLoading(false);
         }
     }
 
