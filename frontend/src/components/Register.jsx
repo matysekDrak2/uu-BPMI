@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import FormInput from './common/FormInput'
+import { authService } from '../services/api'
+import { validateEmail, validatePassword, validateName } from '../utils/validators'
 
 function Register({ onSwitchToLogin }) {
     const [name, setName] = useState('')
@@ -7,6 +9,7 @@ function Register({ onSwitchToLogin }) {
     const [password, setPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
     const [error, setError] = useState('')
+    const [success, setSuccess] = useState('')
     const [isLoading, setIsLoading] = useState(false)
 
     const handleSubmit = async (e) => {
@@ -14,58 +17,67 @@ function Register({ onSwitchToLogin }) {
 
         if (!name || !email || !password || !confirmPassword) {
             setError('Prosím vyplňte všechna pole')
+            setSuccess('')
+            return
+        }
+
+        if (!validateName(name)) {
+            setError('Jméno musí mít alespoň 2 znaky')
+            setSuccess('')
+            return
+        }
+
+        if (!validateEmail(email)) {
+            setError('Zadejte platný email')
+            setSuccess('')
+            return
+        }
+
+        if (!validatePassword(password)) {
+            setError('Heslo musí mít alespoň 6 znaků')
+            setSuccess('')
             return
         }
 
         if (password !== confirmPassword) {
             setError('Hesla se neshodují')
+            setSuccess('')
             return
         }
 
         try {
             setIsLoading(true)
             setError('')
+            setSuccess('')
 
-            const response = await fetch('http://localhost:8080/api/v1/user/signin', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    name,
-                    email,
-                    password
-                }),
-            })
+            try {
+                await authService.register(name, email, password)
 
-            // DONT FORGET TO REMOVE THIS LINE IN PRODUCTION
-            console.log('Odesílám data:', { name, email, password: password });
+                setSuccess('Registrace byla úspěšná! Nyní se můžete přihlásit.')
 
-            if (!response.ok) {
-                const responseText = await response.text();
-                let errorMessage = responseText || 'Registrace selhala';
+                // Vyčistit formulář
+                setName('')
+                setEmail('')
+                setPassword('')
+                setConfirmPassword('')
 
-                // Pokud to vypadá jako JSON, zkusíme to parsovat
-                if (responseText && (responseText.startsWith('{') || responseText.startsWith('['))) {
-                    try {
-                        const errorData = JSON.parse(responseText);
-                        errorMessage = JSON.stringify(errorData);
-                    } catch (e) {
-                        console.log('Error parsing JSON:', e);
-                    }
+                // Přesměrování po úspěšné registraci
+                setTimeout(() => {
+                    onSwitchToLogin()
+                }, 1000)
+            } catch (apiError) {
+                if (apiError.message.includes('Uživatel s tímto emailem již existuje')) {
+                    setError('Uživatel s tímto emailem již existuje')
+                } else {
+                    setError(apiError.message || 'Registrace se nezdařila')
                 }
-
-                throw new Error(errorMessage);
+                throw apiError
             }
 
-            console.log('Registrace úspěšná');
-            onSwitchToLogin();
-
         } catch (err) {
-            setError('Registrace se nezdařila: ' + err.message);
-            console.error('Registration error:', err);
+            console.error('Registration error:', err)
         } finally {
-            setIsLoading(false);
+            setIsLoading(false)
         }
     }
 
@@ -76,12 +88,15 @@ function Register({ onSwitchToLogin }) {
             {/* Display error message if there is one */}
             {error && <div className="error-message">{error}</div>}
 
+            {/* Display success message if there is one */}
+            {success && <div className="success-message">{success}</div>}
+
             <form onSubmit={handleSubmit}>
                 <FormInput
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Zadejte své jméno"
+                    placeholder="Zadejte jméno"
                     disabled={isLoading}
                     label="Jméno"
                 />
@@ -119,7 +134,7 @@ function Register({ onSwitchToLogin }) {
                     className="primary-button"
                     disabled={isLoading}
                 >
-                    Registrovat se
+                    {isLoading ? 'Registrace probíhá...' : 'Registrovat se'}
                 </button>
             </form>
 
