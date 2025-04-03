@@ -1,11 +1,11 @@
-// Base URL 
-const API_BASE_URL = 'http://localhost:8080/api/v1';
+import { API_BASE_URL, SESSION_EXPIRATION_DAYS } from '../config';
 
 const sessionManager = {
     setSession: function (sessionId) {
         const expirationDate = new Date();
-        // 10 seconds for testing - will change to 7 days later
-        expirationDate.setSeconds(expirationDate.getSeconds() + 10);
+        expirationDate.setSeconds(expirationDate.getSeconds() + SESSION_EXPIRATION_DAYS);
+        // we will use this in production
+        //expirationDate.setDate(expirationDate.getDate() + SESSION_EXPIRATION_DAYS);
 
         const sessionData = {
             sessionId: sessionId,
