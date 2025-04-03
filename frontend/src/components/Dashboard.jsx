@@ -9,9 +9,7 @@ function Dashboard() {
     useEffect(() => {
         const fetchUserData = async () => {
             try {
-                const sessionId = localStorage.getItem('sessionId')
-
-                if (!sessionId) {
+                if (!authService.isLoggedIn()) {
                     window.location.href = '/'
                     return
                 }

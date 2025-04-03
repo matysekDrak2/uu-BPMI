@@ -1,6 +1,46 @@
 // Base URL 
 const API_BASE_URL = 'http://localhost:8080/api/v1';
 
+const sessionManager = {
+    setSession: function (sessionId) {
+        const expirationDate = new Date();
+        // 10 seconds for testing - will change to 7 days later
+        expirationDate.setSeconds(expirationDate.getSeconds() + 10);
+
+        const sessionData = {
+            sessionId: sessionId,
+            expiresAt: expirationDate.toISOString()
+        };
+
+        localStorage.setItem('sessionData', JSON.stringify(sessionData));
+    },
+
+    getSessionId: function () {
+        const sessionDataStr = localStorage.getItem('sessionData');
+        if (!sessionDataStr) return null;
+
+        try {
+            const sessionData = JSON.parse(sessionDataStr);
+            const expiresAt = new Date(sessionData.expiresAt);
+            const now = new Date();
+
+            if (now > expiresAt) {
+                this.clearSession();
+                return null;
+            }
+
+            return sessionData.sessionId;
+        } catch (e) {
+            this.clearSession();
+            return null;
+        }
+    },
+
+    clearSession: function () {
+        localStorage.removeItem('sessionData');
+    }
+};
+
 async function handleResponse(response, defaultErrorMessage = 'Požadavek selhal') {
     if (!response.ok) {
         const responseText = await response.text();
@@ -55,7 +95,7 @@ const authService = {
             const data = await handleResponse(response, 'Přihlášení se nezdařilo');
 
             if (data.sessionId) {
-                localStorage.setItem('sessionId', data.sessionId);
+                sessionManager.setSession(data.sessionId);
             }
 
             return data;
@@ -96,16 +136,16 @@ const authService = {
     },
 
     isLoggedIn: function () {
-        return localStorage.getItem('sessionId') !== null;
+        return sessionManager.getSessionId() !== null;
     },
 
     logout: function () {
-        localStorage.removeItem('sessionId');
+        sessionManager.clearSession();
     },
 
     getUserData: async function () {
         try {
-            const sessionId = localStorage.getItem('sessionId');
+            const sessionId = sessionManager.getSessionId();
 
             if (!sessionId) {
                 throw new Error('Uživatel není přihlášen');
