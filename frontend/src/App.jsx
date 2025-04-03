@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Login from './components/Login'
 import Register from './components/Register'
 import Dashboard from './components/Dashboard'
+import { authService } from './services/api'
 import './App.css'
 
 /**
@@ -14,7 +15,7 @@ function App() {
 
     useEffect(() => {
         // Kontrola přihlášení při načtení stránky
-        if (localStorage.getItem('sessionId')) {
+        if (authService.isLoggedIn()) {
             setCurrentPage('dashboard')
         }
 
