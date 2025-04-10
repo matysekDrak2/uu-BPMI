@@ -1,75 +1,76 @@
-import { useEffect, useState } from 'react'
-import { authService } from '../services/api'
+import React, { useState } from 'react';
+import CreateTaskListModal from './CreateTaskListModal';
+import TaskListDropdown from './TaskListDropdown';
+import TaskList from './TaskList';
+import './Dashboard.css';
 
-function Dashboard() {
-    const [userData, setUserData] = useState(null)
-    const [isLoading, setIsLoading] = useState(true)
-    const [error, setError] = useState('')
+const Dashboard = () => {
+    const [taskLists, setTaskLists] = useState([]);
+    const [activeTaskList, setActiveTaskList] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [newTaskListName, setNewTaskListName] = useState('');
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-    useEffect(() => {
-        const fetchUserData = async () => {
-            try {
-                if (!authService.isLoggedIn()) {
-                    window.location.href = '/'
-                    return
-                }
+    const handleCreateTaskList = () => {
+        setIsModalOpen(true);
+    };
 
-                try {
-                    const userData = await authService.getUserData();
-                    setUserData(userData);
-                } catch (apiError) {
-                    setError('Nepodařilo se načíst data: ' + apiError.message);
-                    authService.logout();
-
-                    setTimeout(() => {
-                        window.location.href = '/'
-                    }, 2000);
-                    throw apiError;
-                }
-            } catch (err) {
-                console.error('Error fetching user data:', err);
-            } finally {
-                setIsLoading(false)
-            }
+    const handleModalSubmit = () => {
+        if (newTaskListName.trim()) {
+            const newTaskList = {
+                id: taskLists.length + 1,
+                name: newTaskListName
+            };
+            setTaskLists([...taskLists, newTaskList]);
+            setActiveTaskList(newTaskList.id);
+            setNewTaskListName('');
+            setIsModalOpen(false);
         }
+    };
 
-        fetchUserData()
-    }, [])
-
-    const handleLogout = () => {
-        authService.logout()
-        window.location.href = '/'
-    }
-
-    if (isLoading) {
-        return <div className="dashboard-container">Načítání...</div>
-    }
-
-    if (error) {
-        return <div className="dashboard-container error-message">{error}</div>
-    }
+    const handleTaskListSelect = (id) => {
+        setActiveTaskList(id);
+        setIsDropdownOpen(false);
+    };
 
     return (
-        <div className="dashboard-container">
+        <div className="dashboard">
             <div className="dashboard-header">
-                <h1>Dashboard</h1>
-                <button onClick={handleLogout} className="logout-button">
-                    Odhlásit se
-                </button>
+                <div className="header-controls">
+                    <button className="new-tasklist-button" onClick={handleCreateTaskList}>
+                        + New Task List
+                    </button>
+
+                    {taskLists.length > 0 && (
+                        <TaskListDropdown
+                            taskLists={taskLists}
+                            activeTaskList={activeTaskList}
+                            onTaskListSelect={handleTaskListSelect}
+                            isOpen={isDropdownOpen}
+                            onToggle={() => setIsDropdownOpen(!isDropdownOpen)}
+                        />
+                    )}
+                </div>
             </div>
 
-            <div className="user-info-card">
-                <h2>Informace o uživateli</h2>
-                {userData && (
-                    <div className="user-info">
-                        <p><strong>Jméno:</strong> {userData.name}</p>
-                        <p><strong>Email:</strong> {userData.email}</p>
-                        <p><strong>ID:</strong> {userData.userId}</p>
-                    </div>
-                )}
+            <CreateTaskListModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSubmit={handleModalSubmit}
+                taskListName={newTaskListName}
+                setTaskListName={setNewTaskListName}
+            />
+
+            <div className="tasklists-container">
+                {taskLists.map(list => (
+                    <TaskList
+                        key={list.id}
+                        isVisible={activeTaskList === list.id}
+                    />
+                ))}
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default Dashboard 
+export default Dashboard;
