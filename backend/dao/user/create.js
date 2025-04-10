@@ -2,13 +2,28 @@ const fs = require('fs');
 
 
 function create(user){
-    const path = process.cwd() +'/data.tst/users/'+user.id+'.json'
+    const userDir = process.cwd() +'/data.tst/users/'
+    const path = userDir +user.id+'.json'
     const exists = fs.existsSync(path);
     if (exists) {
-        return 1
+        return 2
     }
-    const data_string = JSON.stringify(user, null, 2)
-    fs.writeFileSync(path, data_string, 'utf8');
+
+    // check for dupe emails
+    const files = fs.readdirSync(userDir);
+    for (const file of files) {
+        try {
+            const userData = JSON.parse(fs.readFileSync(userDir + file, { encoding: 'utf8', flag: 'r' }));
+            if (userData.email && userData.email.toLowerCase() === user.email.toLowerCase()) {
+                return 1;
+            }
+        } catch (error) {
+            console.error("Chyba při čtení souboru uživatele:", error);
+        }
+    }
+
+    const writeJSON = require('../dev-tools/writeJSON')
+    writeJSON(path, user)
     return 0
 }
 

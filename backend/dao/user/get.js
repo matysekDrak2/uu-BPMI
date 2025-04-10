@@ -6,7 +6,8 @@ function get(id) {
     if (!exists) {
         return 0
     }
-    return JSON.parse(fs.readFileSync(path, { encoding: 'utf8', flag: 'r' }))
+    const readJSON = require('../dev-tools/readJSON')
+    return readJSON(path)
 }
 
 module.exports = get;
