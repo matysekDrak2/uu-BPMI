@@ -1,0 +1,236 @@
+.dashboard {
+    padding: 20px;
+    width: 100%;
+    min-height: 100vh;
+    background: #f0f2f5;
+}
+
+.dashboard-header {
+    margin-bottom: 30px;
+}
+
+.header-controls {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.new-tasklist-button {
+    background-color: #1677ff;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    white-space: nowrap;
+}
+
+.new-tasklist-button:hover {
+    background-color: #4096ff;
+}
+
+.dropdown-container {
+    position: relative;
+    min-width: 200px;
+}
+
+.dropdown-button {
+    width: 100%;
+    padding: 12px 16px;
+    background: white;
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    text-align: left;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dropdown-button:hover {
+    border-color: #1677ff;
+}
+
+.dropdown-arrow {
+    font-size: 12px;
+    color: #666;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    width: 100%;
+    background: white;
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.dropdown-item {
+    width: 100%;
+    padding: 10px 16px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 16px;
+    text-align: left;
+}
+
+.dropdown-item:hover {
+    background: #f5f5f5;
+}
+
+.dropdown-item.active {
+    background: #e6f4ff;
+    color: #1677ff;
+}
+
+.tasklists-container {
+    width: 100%;
+}
+
+.tasklist {
+    background: white;
+    border: 1px solid #e8e8e8;
+    border-radius: 12px;
+    padding: 24px;
+    width: 100%;
+    min-height: calc(100vh - 180px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    display: none;
+}
+
+.tasklist.visible {
+    display: block;
+}
+
+.tasklist-content {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    height: 100%;
+}
+
+.column {
+    background: #f5f5f5;
+    border-radius: 8px;
+    padding: 20px;
+    height: 100%;
+    min-height: calc(100vh - 250px);
+}
+
+.column h4 {
+    margin: 0 0 16px 0;
+    font-size: 18px;
+    color: #666;
+    text-align: center;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal {
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.modal h3 {
+    margin: 0 0 20px 0;
+    font-size: 20px;
+}
+
+.modal input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #d9d9d9;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    font-size: 16px;
+}
+
+.modal input:focus {
+    outline: none;
+    border-color: #1677ff;
+    box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.2);
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.modal-buttons button {
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.modal-buttons button[type="button"] {
+    background: white;
+    border: 1px solid #d9d9d9;
+    color: #666;
+}
+
+.modal-buttons button[type="submit"] {
+    background: #1677ff;
+    border: none;
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .dashboard {
+        padding: 16px;
+    }
+
+    .header-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .dropdown-container {
+        width: 100%;
+    }
+
+    .tasklist-content {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .column {
+        min-height: 300px;
+    }
+}
+
+@media (max-width: 480px) {
+    .new-tasklist-button {
+        width: 100%;
+        padding: 10px;
+    }
+
+    .modal {
+        width: 95%;
+        padding: 16px;
+    }
+}
