@@ -11,4 +11,7 @@ router.use("/signin", signin)
 const authTest = require('./authTest');
 router.use('/authTest', authTest)
 
+const getTaskLists = require("./getTaskLists");
+router.use("/taskLists", getTaskLists)
+
 module.exports = router;

@@ -29,42 +29,22 @@ router.post('/', (req, res) => {
         return
     }
 
-    const userDir = process.cwd() + '/data.tst/users/';
-    let emailExists = false;
-
-    if (!fs.existsSync(userDir)) {
-        fs.mkdirSync(userDir, { recursive: true });
-    }
-
-    const files = fs.readdirSync(userDir);
-    for (const file of files) {
-        try {
-            const userData = JSON.parse(fs.readFileSync(userDir + file, { encoding: 'utf8', flag: 'r' }));
-            if (userData.email && userData.email.toLowerCase() === data.email.toLowerCase()) {
-                emailExists = true;
-                break;
-            }
-        } catch (error) {
-            console.error("Chyba při čtení souboru uživatele:", error);
-        }
-    }
-
-    if (emailExists) {
-        res.status(409).json({ error: "Uživatel s tímto emailem již existuje" });
-        return;
-    }
-
     data.id = uuidv4();
     const userSignIn = require("../../../dao/user/create");
     const result = userSignIn(data);
 
-    if (result !== 0) {
-        res.status(500).json({ error: "Nepodařilo se vytvořit uživatele" });
-        return;
+    switch (result){
+        case 0:
+            const { password, ...userWithoutPassword } = data;
+            res.status(201).json(userWithoutPassword);
+            return;
+        case 1:
+            res.status(409).json({ error: "Uživatel s tímto emailem již existuje" });
+            return;
+        case 2:
+            res.status(500).json({ error: "Nepodařilo se vytvořit uživatele" });
+            return;
     }
-
-    const { password, ...userWithoutPassword } = data;
-    res.status(201).json(userWithoutPassword);
 })
 
 module.exports = router;

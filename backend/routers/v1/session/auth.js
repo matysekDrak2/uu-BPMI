@@ -27,6 +27,7 @@ function auth(req, res, next){
 
     if (id === ""){
         res.status(401).send()
+        return;
     }
 
     next()
