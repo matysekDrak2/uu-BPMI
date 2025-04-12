@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router()
 const Ajv = require('ajv');
-const ajv = new Ajv({ allErrors: true });
+const ajv = new Ajv({ allErrors:true});
 const addFormats = require("ajv-formats")
 addFormats(ajv)
 
