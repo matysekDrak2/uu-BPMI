@@ -1,12 +1,20 @@
 const fs = require('fs');
+const path = require('path');
 
 function getUser(sessionKey) {
-    const path = process.cwd() +'/data.tst/sessions/' + sessionKey
-    const exists = fs.existsSync(path);
-    if (!exists) {
-        return ""
+    const sessionsDir = path.join(process.cwd(), 'data.tst', 'sessions');
+
+    // Ensure sessions directory exists
+    if (!fs.existsSync(sessionsDir)) {
+        return "";
     }
-    return fs.readFileSync(path, { encoding: 'utf8', flag: 'r' })
+
+    const sessionPath = path.join(sessionsDir, sessionKey);
+    if (!fs.existsSync(sessionPath)) {
+        return "";
+    }
+
+    return fs.readFileSync(sessionPath, { encoding: 'utf8', flag: 'r' });
 }
 
 module.exports = getUser;
