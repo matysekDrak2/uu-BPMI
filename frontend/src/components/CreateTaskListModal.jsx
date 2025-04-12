@@ -8,6 +8,13 @@ const CreateTaskListModal = ({ isOpen, onClose, onSubmit, taskListName, setTaskL
         onSubmit();
     };
 
+    const handleInputChange = (e) => {
+        // Omezení na max 50 znaků
+        if (e.target.value.length <= 50) {
+            setTaskListName(e.target.value);
+        }
+    };
+
     return (
         <div className="modal-overlay">
             <div className="modal">
@@ -16,10 +23,14 @@ const CreateTaskListModal = ({ isOpen, onClose, onSubmit, taskListName, setTaskL
                     <input
                         type="text"
                         value={taskListName}
-                        onChange={(e) => setTaskListName(e.target.value)}
+                        onChange={handleInputChange}
                         placeholder="Zadejte název seznamu úkolů"
+                        maxLength={50}
                         autoFocus
                     />
+                    <div className="character-count">
+                        {taskListName.length}/50 znaků
+                    </div>
                     {error && <div className="modal-error">{error}</div>}
                     <div className="modal-buttons">
                         <button type="button" onClick={onClose}>

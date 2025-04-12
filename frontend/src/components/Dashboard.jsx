@@ -42,10 +42,17 @@ const Dashboard = () => {
     };
 
     const handleModalSubmit = async () => {
-        if (newTaskListName.trim()) {
+        const trimmedName = newTaskListName.trim();
+        if (trimmedName) {
+            // Kontrola délky názvu
+            if (trimmedName.length > 50) {
+                setModalError('Název seznamu úkolů nesmí být delší než 50 znaků');
+                return;
+            }
+
             // Kontrola na duplikátní název
             const isDuplicate = taskLists.some(list =>
-                list.name.toLowerCase() === newTaskListName.trim().toLowerCase()
+                list.name.toLowerCase() === trimmedName.toLowerCase()
             );
 
             if (isDuplicate) {
@@ -56,7 +63,7 @@ const Dashboard = () => {
             try {
                 setError(null);
                 setModalError(null);
-                const newTaskList = await taskListService.createTaskList(newTaskListName);
+                const newTaskList = await taskListService.createTaskList(trimmedName);
                 setTaskLists([...taskLists, newTaskList]);
                 setActiveTaskList(newTaskList.id);
                 setNewTaskListName('');
