@@ -6,13 +6,13 @@ const TaskList = ({ isVisible, taskList }) => {
             {taskList && <h3 className="tasklist-title">{taskList.name}</h3>}
             <div className="tasklist-content">
                 <div className="column">
-                    <h4>Open</h4>
+                    <h4>Otevřené</h4>
                 </div>
                 <div className="column">
-                    <h4>In progress</h4>
+                    <h4>Probíhající</h4>
                 </div>
                 <div className="column">
-                    <h4>Done</h4>
+                    <h4>Dokončené</h4>
                 </div>
             </div>
         </div>

@@ -7,7 +7,7 @@ const TaskListDropdown = ({
     isOpen,
     onToggle
 }) => {
-    const activeListName = taskLists.find(list => list.id === activeTaskList)?.name || 'Select Task List';
+    const activeListName = taskLists.find(list => list.id === activeTaskList)?.name || 'Vyberte seznam úkolů';
 
     return (
         <div className="dropdown-container">

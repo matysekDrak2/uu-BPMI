@@ -13,6 +13,7 @@ const Dashboard = () => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [modalError, setModalError] = useState(null);
 
     useEffect(() => {
         loadTaskLists();
@@ -36,13 +37,25 @@ const Dashboard = () => {
     };
 
     const handleCreateTaskList = () => {
+        setModalError(null);
         setIsModalOpen(true);
     };
 
     const handleModalSubmit = async () => {
         if (newTaskListName.trim()) {
+            // Kontrola na duplikátní název
+            const isDuplicate = taskLists.some(list =>
+                list.name.toLowerCase() === newTaskListName.trim().toLowerCase()
+            );
+
+            if (isDuplicate) {
+                setModalError('Seznam úkolů s tímto názvem již existuje');
+                return;
+            }
+
             try {
                 setError(null);
+                setModalError(null);
                 const newTaskList = await taskListService.createTaskList(newTaskListName);
                 setTaskLists([...taskLists, newTaskList]);
                 setActiveTaskList(newTaskList.id);
@@ -50,7 +63,7 @@ const Dashboard = () => {
                 setIsModalOpen(false);
             } catch (err) {
                 console.error('Error creating task list:', err);
-                setError(err.message || 'Nepodařilo se vytvořit seznam úkolů');
+                setModalError(err.message || 'Nepodařilo se vytvořit seznam úkolů');
             }
         }
     };
@@ -70,7 +83,7 @@ const Dashboard = () => {
             <div className="dashboard-header">
                 <div className="header-controls">
                     <button className="new-tasklist-button" onClick={handleCreateTaskList}>
-                        + New Task List
+                        + Nový seznam úkolů
                     </button>
 
                     {taskLists.length > 0 && (
@@ -98,6 +111,7 @@ const Dashboard = () => {
                 onSubmit={handleModalSubmit}
                 taskListName={newTaskListName}
                 setTaskListName={setNewTaskListName}
+                error={modalError}
             />
 
             <div className="tasklists-container">
