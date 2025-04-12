@@ -1,22 +1,31 @@
+const fs = require('fs');
+const path = require('path');
+const { v4: uuidv4 } = require('uuid');
 
 function create(name, ownerId) {
+    const taskListsDir = path.join(process.cwd(), 'data.tst', 'task-lists');
+    if (!fs.existsSync(path.join(process.cwd(), 'data.tst'))) {
+        fs.mkdirSync(path.join(process.cwd(), 'data.tst'), { recursive: true });
+    }
+    if (!fs.existsSync(taskListsDir)) {
+        fs.mkdirSync(taskListsDir, { recursive: true });
+    }
 
-    const { v4: uuidv4 } = require('uuid');
     /** @type string */
     const id = uuidv4();
 
-    const data ={
+    const data = {
         id: id,
         name: name,
         owner: ownerId,
         admins: [],
         members: []
-    }
+    };
 
-    const writeJSON = require("../dev-tools/writeJSON");
-    writeJSON( '/data.tst/task-lists/' + id, data)
+    const taskListPath = path.join(taskListsDir, `${id}.json`);
+    fs.writeFileSync(taskListPath, JSON.stringify(data, null, 2), 'utf8');
 
-    return data
+    return data;
 }
 
 module.exports = create;
