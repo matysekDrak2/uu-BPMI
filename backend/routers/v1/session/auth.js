@@ -14,7 +14,6 @@ const body_tmpl = {
 }
 const bodyValidator = ajv.compile(body_tmpl);
 
-// Definice schématu pro query parametry
 const query_tmpl = {
     type: 'object',
     properties: {
@@ -26,12 +25,6 @@ const query_tmpl = {
 const queryValidator = ajv.compile(query_tmpl);
 
 function auth(req, res, next) {
-    console.log("middleware auth");
-    console.log("Request method:", req.method);
-    console.log("Request body:", req.body);
-    console.log("Request query:", req.query);
-
-    // Pokud je to GET požadavek, očekáváme sessionKey v query
     if (req.method === 'GET') {
         const validQuery = queryValidator(req.query);
         if (!validQuery) {
@@ -49,7 +42,6 @@ function auth(req, res, next) {
             return;
         }
     }
-    // Jinak očekáváme sessionKey v těle
     else {
         const validBody = bodyValidator(req.body);
         if (!validBody) {
@@ -68,7 +60,7 @@ function auth(req, res, next) {
         }
     }
 
-    next();
+    next()
 }
 
 module.exports = auth;

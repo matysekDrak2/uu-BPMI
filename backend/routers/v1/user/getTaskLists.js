@@ -20,18 +20,13 @@ const validator = ajv.compile(user_login_tmpl);
 
 // Přidáme middleware pro logování požadavku
 router.use((req, res, next) => {
-    console.log('TaskLists Request - Method:', req.method);
-    console.log('TaskLists Request - Body:', req.body);
-    console.log('TaskLists Request - Query:', req.query);
     next();
 });
 
-// Podpora pro GET i POST metodu
 router.get('/', handleTaskLists);
 router.post('/', handleTaskLists);
 
 function handleTaskLists(req, res) {
-    // Získání sessionKey z těla nebo query parametrů
     const sessionKey = req.body.sessionKey || req.query.sessionKey;
 
     console.log('Session Key:', sessionKey);
@@ -44,8 +39,6 @@ function handleTaskLists(req, res) {
     const getUserIdFromSession = require("../../../dao/session/getUser");
     const userId = getUserIdFromSession(sessionKey);
 
-    console.log('User ID from session:', userId);
-
     if (!userId) {
         console.log('Invalid session');
         return res.status(401).json({ error: "Invalid session" });
@@ -53,8 +46,6 @@ function handleTaskLists(req, res) {
 
     const getTaskLists = require("../../../dao/task-list/getAll");
     const taskLists = getTaskLists();
-
-    console.log('All task lists:', JSON.stringify(taskLists));
 
     const data = []
 
@@ -73,7 +64,6 @@ function handleTaskLists(req, res) {
         }
     }
 
-    console.log('User task lists:', JSON.stringify(data));
     res.status(200).json(data);
 }
 
