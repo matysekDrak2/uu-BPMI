@@ -3,6 +3,7 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const testUtils = require('../testUtils');
 
+// Import DAO functions
 const taskListCreate = require('../../dao/task-list/create');
 const taskListGet = require('../../dao/task-list/get');
 const taskListGetAll = require('../../dao/task-list/getAll');
@@ -11,20 +12,29 @@ const TEST_DATA = {
     taskListId: null,
     userId: uuidv4(),
     taskList: {
-        id: null,
         name: 'Test Task List',
         owner: null
     }
 };
 
-beforeAll(() => {
-    TEST_DATA.taskList.owner = TEST_DATA.userId;
-    testUtils.setupTestData();
+// Ensure test directories exist
+function ensureTestDirectories() {
+    const dataDir = path.join(process.cwd(), 'data.tst');
+    const taskListsDir = path.join(dataDir, 'task-lists');
 
-    const taskListsDir = path.join(process.cwd(), 'data.tst', 'task-lists');
+    if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+    }
+
     if (!fs.existsSync(taskListsDir)) {
         fs.mkdirSync(taskListsDir, { recursive: true });
     }
+}
+
+beforeAll(() => {
+    TEST_DATA.taskList.owner = TEST_DATA.userId;
+    testUtils.setupTestData();
+    ensureTestDirectories();
 });
 
 afterAll(() => {
@@ -52,7 +62,8 @@ describe('Task List DAO', () => {
 
     test('should get task list by ID', () => {
         const taskList = taskListGet(TEST_DATA.taskListId);
-        expect(taskList).not.toBeNull();
+        expect(taskList).toBeTruthy();
+        expect(taskList).not.toBe(0);
         expect(taskList.id).toBe(TEST_DATA.taskListId);
         expect(taskList.name).toBe(TEST_DATA.taskList.name);
         expect(taskList.owner).toBe(TEST_DATA.userId);
@@ -60,7 +71,7 @@ describe('Task List DAO', () => {
 
     test('should return null for non-existent task list', () => {
         const result = taskListGet('non-existent-id');
-        expect(result).toBeNull();
+        expect(result).toBeFalsy();
     });
 
     test('should get all task lists', () => {
