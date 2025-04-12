@@ -1,8 +1,9 @@
 import React from 'react';
 
-const TaskList = ({ isVisible }) => {
+const TaskList = ({ isVisible, taskList }) => {
     return (
         <div className={`tasklist ${isVisible ? 'visible' : 'hidden'}`}>
+            {taskList && <h3 className="tasklist-title">{taskList.name}</h3>}
             <div className="tasklist-content">
                 <div className="column">
                     <h4>Open</h4>
