@@ -178,25 +178,14 @@ const taskListService = {
 
             console.log('Sending request to get task lists with session ID:', sessionId);
 
-            // Zkusíme nejprve GET metodu bez těla
-            let response = await fetch(`${API_BASE_URL}/user/taskLists?sessionKey=${sessionId}`, {
-                method: 'GET',
+            // Používáme přímo POST s tělem požadavku
+            const response = await fetch(`${API_BASE_URL}/user/taskLists`, {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                }
+                },
+                body: JSON.stringify({ sessionKey: sessionId })
             });
-
-            if (!response.ok) {
-                console.log('GET request failed, trying POST');
-                // Pokud GET selže, zkusíme POST s tělem
-                response = await fetch(`${API_BASE_URL}/user/taskLists`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ sessionKey: sessionId })
-                });
-            }
 
             const result = await handleResponse(response, 'Nepodařilo se načíst seznamy úkolů');
             console.log('Received task lists:', result);
