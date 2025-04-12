@@ -12,11 +12,7 @@ router.get("/", (req, res) => {
 
 const create = require("./create");
 router.post("/", (req, res) => {
-    if (req.body.listId) {
-        get(req, res);
-        return;
-    }
-    create(req, res);
-});
+    create(req, res)
+})
 
 module.exports = router;
