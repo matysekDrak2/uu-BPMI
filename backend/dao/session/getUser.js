@@ -4,7 +4,6 @@ const path = require('path');
 function getUser(sessionKey) {
     const sessionsDir = path.join(process.cwd(), 'data.tst', 'sessions');
 
-    // Ensure sessions directory exists
     if (!fs.existsSync(sessionsDir)) {
         return "";
     }

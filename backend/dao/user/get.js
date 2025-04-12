@@ -4,7 +4,6 @@ const path = require('path');
 function get(userId) {
     const usersDir = path.join(process.cwd(), 'data.tst', 'users');
 
-    // Ensure users directory exists
     if (!fs.existsSync(usersDir)) {
         return 0;
     }

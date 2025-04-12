@@ -14,7 +14,6 @@ const user_login_tmpl = {
 const validator = ajv.compile(user_login_tmpl);
 
 function get(req, res) {
-    // Získání parametrů z query nebo body
     const param = req.method === 'GET' ? req.query : req.body;
 
     const valid = validator(param);
@@ -23,7 +22,6 @@ function get(req, res) {
         return
     }
 
-    // Získání sessionKey z body nebo query
     const sessionKey = req.body.sessionKey || req.query.sessionKey;
 
     const getUserId = require("../../../dao/session/getUser");

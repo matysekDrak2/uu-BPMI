@@ -3,7 +3,6 @@ const ajv = new Ajv({ allErrors: true });
 const addFormats = require("ajv-formats")
 addFormats(ajv)
 
-// Definice schématu pro tělo požadavku
 const body_tmpl = {
     type: 'object',
     properties: {
@@ -14,7 +13,6 @@ const body_tmpl = {
 }
 const bodyValidator = ajv.compile(body_tmpl);
 
-// Definice schématu pro query parametry
 const query_tmpl = {
     type: 'object',
     properties: {
@@ -31,7 +29,6 @@ function auth(req, res, next) {
     console.log("Request body:", req.body);
     console.log("Request query:", req.query);
 
-    // Pokud je to GET požadavek, očekáváme sessionKey v query
     if (req.method === 'GET') {
         const validQuery = queryValidator(req.query);
         if (!validQuery) {
@@ -49,7 +46,7 @@ function auth(req, res, next) {
             return;
         }
     }
-    // Jinak očekáváme sessionKey v těle
+
     else {
         const validBody = bodyValidator(req.body);
         if (!validBody) {
