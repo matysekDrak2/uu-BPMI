@@ -1,30 +1,35 @@
 const fs = require('fs');
+const path = require('path');
 
-
-function create(user){
-    const userDir = process.cwd() +'/data.tst/users/'
-    const path = userDir +user.id+'.json'
-    const exists = fs.existsSync(path);
-    if (exists) {
-        return 2
+function create(user) {
+    // Ensure directories exist
+    const usersDirPath = path.join(process.cwd(), 'data.tst', 'users');
+    if (!fs.existsSync(path.join(process.cwd(), 'data.tst'))) {
+        fs.mkdirSync(path.join(process.cwd(), 'data.tst'), { recursive: true });
+    }
+    if (!fs.existsSync(usersDirPath)) {
+        fs.mkdirSync(usersDirPath, { recursive: true });
     }
 
-    // check for dupe emails
-    const files = fs.readdirSync(userDir);
+    // Rest of the function
+    const userPath = path.join(usersDirPath, `${user.id}.json`);
+    const fileExists = fs.existsSync(userPath);
+
+    if (fileExists) {
+        return 1;
+    }
+
+    // Check for duplicate email
+    const files = fs.readdirSync(usersDirPath);
     for (const file of files) {
-        try {
-            const userData = JSON.parse(fs.readFileSync(userDir + file, { encoding: 'utf8', flag: 'r' }));
-            if (userData.email && userData.email.toLowerCase() === user.email.toLowerCase()) {
-                return 1;
-            }
-        } catch (error) {
-            console.error("Chyba při čtení souboru uživatele:", error);
+        const userData = JSON.parse(fs.readFileSync(path.join(usersDirPath, file), 'utf8'));
+        if (userData.email === user.email) {
+            return 1;
         }
     }
 
-    const writeJSON = require('../dev-tools/writeJSON')
-    writeJSON(path, user)
-    return 0
+    fs.writeFileSync(userPath, JSON.stringify(user), 'utf8');
+    return 0;
 }
 
 module.exports = create;
