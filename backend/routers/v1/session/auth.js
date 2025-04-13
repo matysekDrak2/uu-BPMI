@@ -5,23 +5,18 @@ addFormats(ajv)
 
 
 const user_login_tmpl = {
-    type: 'object',
-    properties: {
-        sessionKey: { type: 'string', minLength: 36, maxLength: 36 }
-    },
-    required: ['sessionKey'],
-    additionalProperties: true
+    type: 'string',
+    minLength: 36,
+    maxLength: 36
 }
 const validator = ajv.compile(user_login_tmpl);
 
 function auth(req, res, next){
     console.log("middleware auth")
 
-    const sessionKeyFromBody = req.body?.sessionKey;
-    const sessionKeyFromQuery = req.query?.sessionKey;
-    const sessionKey = sessionKeyFromBody || sessionKeyFromQuery;
+    const sessionKey = req.headers.sessionkey;
 
-    const valid = validator({ sessionKey });
+    const valid = validator( sessionKey );
     if ( !valid ) {
         res.status(400).json(validator.errors).send()
         return
