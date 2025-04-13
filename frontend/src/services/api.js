@@ -52,7 +52,7 @@ async function handleResponse(response, defaultErrorMessage = 'Požadavek selhal
 
                 if (errorData.err) {
                     if (errorData.err === "Unable to logIn") {
-                        errorMessage = "Nesprávný email nebo heslo";
+                        errorMessage = "Invalid email or password";
                     } else {
                         errorMessage = errorData.err;
                     }
@@ -74,7 +74,7 @@ async function handleResponse(response, defaultErrorMessage = 'Požadavek selhal
     } catch (e) {
 
         console.log('Error parsing JSON response:', e);
-        return { message: 'Operace byla úspěšná' };
+        return { message: 'Operation was successful' };
     }
 }
 
@@ -92,7 +92,7 @@ const authService = {
                 }),
             });
 
-            const data = await handleResponse(response, 'Přihlášení se nezdařilo');
+            const data = await handleResponse(response, 'Login failed');
 
             if (data.sessionId) {
                 sessionManager.setSession(data.sessionId);
@@ -119,7 +119,7 @@ const authService = {
                 }),
             });
 
-            return await handleResponse(response, 'Registrace se nezdařila');
+            return await handleResponse(response, 'Registration failed');
         } catch (error) {
             console.error('Register error:', error);
             throw error;
@@ -148,7 +148,7 @@ const authService = {
             const sessionId = sessionManager.getSessionId();
 
             if (!sessionId) {
-                throw new Error('Uživatel není přihlášen');
+                throw new Error('User is not signed');
             }
 
             const response = await fetch(API_BASE_URL + '/user/authTest', {
@@ -159,7 +159,7 @@ const authService = {
                 body: JSON.stringify({ sessionKey: sessionId }),
             });
 
-            return await handleResponse(response, 'Nepodařilo se načíst data uživatele');
+            return await handleResponse(response, 'Unable to load task lists');
         } catch (error) {
             console.error('Get user data error:', error);
             throw error;
@@ -173,7 +173,7 @@ const taskListService = {
             const sessionId = sessionManager.getSessionId();
 
             if (!sessionId) {
-                throw new Error('Uživatel není přihlášen');
+                throw new Error('User is not signed');
             }
 
             console.log('Sending request to get task lists with session ID:', sessionId);
@@ -186,7 +186,7 @@ const taskListService = {
                 }
             });
 
-            const result = await handleResponse(response, 'Nepodařilo se načíst seznamy úkolů');
+            const result = await handleResponse(response, 'Unable to load task lists');
             console.log('Received task lists:', result);
             return result;
         } catch (error) {
@@ -200,7 +200,7 @@ const taskListService = {
             const sessionId = sessionManager.getSessionId();
 
             if (!sessionId) {
-                throw new Error('Uživatel není přihlášen');
+                throw new Error('User is not signed');
             }
 
             const response = await fetch(`${API_BASE_URL}/taskList`, {
@@ -214,7 +214,7 @@ const taskListService = {
                 }),
             });
 
-            return await handleResponse(response, 'Nepodařilo se vytvořit seznam úkolů');
+            return await handleResponse(response, 'Unable to load task lists');
         } catch (error) {
             console.error('Create task list error:', error);
             throw error;
@@ -226,7 +226,7 @@ const taskListService = {
             const sessionId = sessionManager.getSessionId();
 
             if (!sessionId) {
-                throw new Error('Uživatel není přihlášen');
+                throw new Error('User is not signed');
             }
 
             const response = await fetch(`${API_BASE_URL}/taskList`, {
@@ -240,7 +240,7 @@ const taskListService = {
                 })
             });
 
-            return await handleResponse(response, 'Nepodařilo se načíst seznam úkolů');
+            return await handleResponse(response, 'Unable to load task lists');
         } catch (error) {
             console.error('Get task list error:', error);
             throw error;
