@@ -1,75 +1,137 @@
-import { useEffect, useState } from 'react'
-import { authService } from '../services/api'
+import React, { useState, useEffect } from 'react';
+import CreateTaskListModal from './CreateTaskListModal';
+import TaskListDropdown from './TaskListDropdown';
+import TaskList from './TaskList';
+import { taskListService, authService } from '../services/api';
+import './Dashboard.css';
 
-function Dashboard() {
-    const [userData, setUserData] = useState(null)
-    const [isLoading, setIsLoading] = useState(true)
-    const [error, setError] = useState('')
+const Dashboard = () => {
+    const [taskLists, setTaskLists] = useState([]);
+    const [activeTaskList, setActiveTaskList] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [newTaskListName, setNewTaskListName] = useState('');
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [modalError, setModalError] = useState(null);
 
     useEffect(() => {
-        const fetchUserData = async () => {
+        loadTaskLists();
+    }, []);
+
+    const loadTaskLists = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const lists = await taskListService.getAllTaskLists();
+            setTaskLists(lists);
+            if (lists.length > 0) {
+                setActiveTaskList(lists[0].id);
+            }
+        } catch (err) {
+            console.error('Error loading task lists:', err);
+            setError(err.message || 'Nepodařilo se načíst seznamy úkolů');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCreateTaskList = () => {
+        setModalError(null);
+        setIsModalOpen(true);
+    };
+
+    const handleModalSubmit = async () => {
+        const trimmedName = newTaskListName.trim();
+        if (trimmedName) {
+            // Kontrola délky názvu
+            if (trimmedName.length > 50) {
+                setModalError('Název seznamu úkolů nesmí být delší než 50 znaků');
+                return;
+            }
+
+            // Kontrola na duplikátní název
+            const isDuplicate = taskLists.some(list =>
+                list.name.toLowerCase() === trimmedName.toLowerCase()
+            );
+
+            if (isDuplicate) {
+                setModalError('Seznam úkolů s tímto názvem již existuje');
+                return;
+            }
+
             try {
-                if (!authService.isLoggedIn()) {
-                    window.location.href = '/'
-                    return
-                }
-
-                try {
-                    const userData = await authService.getUserData();
-                    setUserData(userData);
-                } catch (apiError) {
-                    setError('Nepodařilo se načíst data: ' + apiError.message);
-                    authService.logout();
-
-                    setTimeout(() => {
-                        window.location.href = '/'
-                    }, 2000);
-                    throw apiError;
-                }
+                setError(null);
+                setModalError(null);
+                const newTaskList = await taskListService.createTaskList(trimmedName);
+                setTaskLists([...taskLists, newTaskList]);
+                setActiveTaskList(newTaskList.id);
+                setNewTaskListName('');
+                setIsModalOpen(false);
             } catch (err) {
-                console.error('Error fetching user data:', err);
-            } finally {
-                setIsLoading(false)
+                console.error('Error creating task list:', err);
+                setModalError(err.message || 'Nepodařilo se vytvořit seznam úkolů');
             }
         }
+    };
 
-        fetchUserData()
-    }, [])
+    const handleTaskListSelect = (id) => {
+        setActiveTaskList(id);
+        setIsDropdownOpen(false);
+    };
 
     const handleLogout = () => {
-        authService.logout()
-        window.location.href = '/'
-    }
-
-    if (isLoading) {
-        return <div className="dashboard-container">Načítání...</div>
-    }
-
-    if (error) {
-        return <div className="dashboard-container error-message">{error}</div>
-    }
+        authService.logout();
+        window.location.href = '/login';
+    };
 
     return (
-        <div className="dashboard-container">
+        <div className="dashboard">
             <div className="dashboard-header">
-                <h1>Dashboard</h1>
-                <button onClick={handleLogout} className="logout-button">
-                    Odhlásit se
-                </button>
+                <div className="header-controls">
+                    <button className="new-tasklist-button" onClick={handleCreateTaskList}>
+                        + Nový seznam úkolů
+                    </button>
+
+                    {taskLists.length > 0 && (
+                        <TaskListDropdown
+                            taskLists={taskLists}
+                            activeTaskList={activeTaskList}
+                            onTaskListSelect={handleTaskListSelect}
+                            isOpen={isDropdownOpen}
+                            onToggle={() => setIsDropdownOpen(!isDropdownOpen)}
+                        />
+                    )}
+
+                    <button className="logout-button" onClick={handleLogout}>
+                        Odhlásit se
+                    </button>
+                </div>
             </div>
 
-            <div className="user-info-card">
-                <h2>Informace o uživateli</h2>
-                {userData && (
-                    <div className="user-info">
-                        <p><strong>Jméno:</strong> {userData.name}</p>
-                        <p><strong>Email:</strong> {userData.email}</p>
-                        <p><strong>ID:</strong> {userData.userId}</p>
-                    </div>
-                )}
+            {error && <div className="error-message">{error}</div>}
+            {loading && <div className="loading-indicator">Načítání...</div>}
+
+            <CreateTaskListModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSubmit={handleModalSubmit}
+                taskListName={newTaskListName}
+                setTaskListName={setNewTaskListName}
+                error={modalError}
+            />
+
+            <div className="tasklists-container">
+                {taskLists.map(list => (
+                    <TaskList
+                        key={list.id}
+                        isVisible={activeTaskList === list.id}
+                        taskList={list}
+                    />
+                ))}
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default Dashboard 
+export default Dashboard;

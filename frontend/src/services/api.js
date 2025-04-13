@@ -3,9 +3,9 @@ import { API_BASE_URL, SESSION_EXPIRATION_DAYS } from '../config';
 const sessionManager = {
     setSession: function (sessionId) {
         const expirationDate = new Date();
-        expirationDate.setSeconds(expirationDate.getSeconds() + SESSION_EXPIRATION_DAYS);
+        //expirationDate.setSeconds(expirationDate.getSeconds() + SESSION_EXPIRATION_DAYS);
         // we will use this in production
-        //expirationDate.setDate(expirationDate.getDate() + SESSION_EXPIRATION_DAYS);
+        expirationDate.setDate(expirationDate.getDate() + SESSION_EXPIRATION_DAYS);
 
         const sessionData = {
             sessionId: sessionId,
@@ -167,4 +167,84 @@ const authService = {
     },
 };
 
-export { authService }; 
+const taskListService = {
+    getAllTaskLists: async function () {
+        try {
+            const sessionId = sessionManager.getSessionId();
+    
+            if (!sessionId) {
+                throw new Error('Uživatel není přihlášen');
+            }
+    
+            console.log('Sending request to get task lists with session ID:', sessionId);
+    
+            const response = await fetch(`${API_BASE_URL}/user/taskLists?sessionKey=${sessionId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+    
+            const result = await handleResponse(response, 'Nepodařilo se načíst seznamy úkolů');
+            console.log('Received task lists:', result);
+            return result;
+        } catch (error) {
+            console.error('Get task lists error:', error);
+            throw error;
+        }
+    },
+
+    createTaskList: async function (name) {
+        try {
+            const sessionId = sessionManager.getSessionId();
+
+            if (!sessionId) {
+                throw new Error('Uživatel není přihlášen');
+            }
+
+            const response = await fetch(`${API_BASE_URL}/taskList`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    sessionKey: sessionId,
+                    name: name
+                }),
+            });
+
+            return await handleResponse(response, 'Nepodařilo se vytvořit seznam úkolů');
+        } catch (error) {
+            console.error('Create task list error:', error);
+            throw error;
+        }
+    },
+
+    getTaskList: async function (listId) {
+        try {
+            const sessionId = sessionManager.getSessionId();
+
+            if (!sessionId) {
+                throw new Error('Uživatel není přihlášen');
+            }
+
+            const response = await fetch(`${API_BASE_URL}/taskList`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    sessionKey: sessionId,
+                    listId: listId
+                })
+            });
+
+            return await handleResponse(response, 'Nepodařilo se načíst seznam úkolů');
+        } catch (error) {
+            console.error('Get task list error:', error);
+            throw error;
+        }
+    }
+};
+
+export { authService, taskListService }; 
