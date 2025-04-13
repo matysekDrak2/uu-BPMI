@@ -6,7 +6,7 @@ router.use(auth)
 
 
 router.get('/', (req, res) => {
-    const sessionKey = req.body.sessionKey;
+    const sessionKey = req.query.sessionKey;
 
     const getUserIdFromSession = require("../../../dao/session/getUser");
     const userId = getUserIdFromSession(sessionKey);

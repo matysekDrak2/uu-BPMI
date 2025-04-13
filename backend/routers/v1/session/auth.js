@@ -17,13 +17,18 @@ const validator = ajv.compile(user_login_tmpl);
 function auth(req, res, next){
     console.log("middleware auth")
 
-    const valid = validator(req.body);
+    const sessionKeyFromBody = req.body?.sessionKey;
+    const sessionKeyFromQuery = req.query?.sessionKey;
+    const sessionKey = sessionKeyFromBody || sessionKeyFromQuery;
+
+    const valid = validator({ sessionKey });
     if ( !valid ) {
         res.status(400).json(validator.errors).send()
         return
     }
+
     const getUsetIdFromSession = require("../../../dao/session/getUser");
-    const id = getUsetIdFromSession(req.body.sessionKey)
+    const id = getUsetIdFromSession(sessionKey)
 
     if (id === ""){
         res.status(401).send()
