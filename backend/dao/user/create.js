@@ -23,7 +23,7 @@ function create(user){
     }
 
     const writeJSON = require('../dev-tools/writeJSON')
-    writeJSON(path, user)
+    writeJSON('/data.tst/users/' +user.id +'.json', user)
     return 0
 }
 
