@@ -8,7 +8,9 @@ function readJSON(filePath) {
     }
 
     const data = fs.readFileSync(_filePath, 'utf8');
-    return JSON.parse(data);
+    /** @type {Object}*/
+    const obj = JSON.parse(data);
+    return obj
 }
 
 module.exports = readJSON;
