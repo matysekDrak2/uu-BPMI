@@ -7,10 +7,10 @@ addFormats(ajv)
 const user_login_tmpl = {
     type: 'object',
     properties: {
-        name: { type: 'string', maxLength: 200},
+        name: { type: 'string', maxLength: 200}
     },
     required: ['name'],
-    additionalProperties: true
+    additionalProperties: false
 }
 const validator = ajv.compile(user_login_tmpl);
 
@@ -22,8 +22,7 @@ function create(req, res) {
         return
     }
 
-    const getUserId = require("../../../dao/session/getUser");
-    const userId = getUserId(req.body.sessionKey)
+    const userId = getUserId(req.headers.sessionkey)
 
 
     const daoCreate = require("../../../dao/task-list/create");
