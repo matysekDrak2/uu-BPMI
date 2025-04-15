@@ -1,7 +1,7 @@
+const { v4: uuidv4 } = require('uuid');
 
 function create(name, ownerId) {
 
-    const { v4: uuidv4 } = require('uuid');
     /** @type string */
     const id = uuidv4();
 

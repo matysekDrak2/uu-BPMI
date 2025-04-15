@@ -6,7 +6,7 @@ addFormats(ajv)
 const user_login_tmpl = {
     type: 'object',
     properties: {
-        listId: { type: 'string'},
+        listId: { type: 'string', maxLength: 36, minLength: 36},
     },
     required: ['listId'],
     additionalProperties: false
@@ -21,7 +21,7 @@ function get(req, res) {
         return
     }
     const getUserId = require("../../../dao/session/getUser");
-    const userId = getUserId(req.body.sessionKey)
+    const userId = getUserId(req.headers.sessionkey)
 
     const getTaskList = require("../../../dao/task-list/get");
     const taskList = getTaskList(param.listId);
