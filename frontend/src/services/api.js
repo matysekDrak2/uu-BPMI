@@ -305,19 +305,34 @@ const taskService = {
                 throw new Error('Uživatel není přihlášen');
             }
 
+            // Získáme aktuální úkol pro ověření existence
+            const task = await this.getTask(taskId);
+
+            if (!task) {
+                throw new Error('Nepodařilo se načíst úkol');
+            }
+
+            // Odesíláme pouze vlastnosti, které validační schéma backendu povoluje
+            const updateData = {
+                id: taskId,
+                text: updatedData.text !== undefined ? updatedData.text : task.text,
+                state: updatedData.state !== undefined ? updatedData.state : task.state
+            };
+
+            console.log('Odesílám data pro aktualizaci úkolu:', updateData);
+
             const response = await fetch(`${API_BASE_URL}/task`, {
-                method: 'POST',  // POST for task update as per backend implementation
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'sessionkey': sessionId
                 },
-                body: JSON.stringify({
-                    id: taskId,
-                    ...updatedData
-                })
+                body: JSON.stringify(updateData)
             });
 
-            return await handleResponse(response, 'Nepodařilo se aktualizovat úkol');
+            // Zpracování odpovědi a vrácení dat včetně nového ID
+            const updatedTask = await handleResponse(response, 'Nepodařilo se aktualizovat úkol');
+            return updatedTask; // Backend vrací nový úkol s novým ID
         } catch (error) {
             console.error('Update task error:', error);
             throw error;
