@@ -10,7 +10,6 @@ const user_login_tmpl = {
         id: { type: 'string', maxLength: 36, minLength: 36 },
         text: { type: 'string', maxLength: 200 },
         state: { type: 'number' },
-        taskListId: { type: 'string', maxLength: 36, minLength: 36 }
     },
     required: ['id'],
     additionalProperties: false
@@ -33,10 +32,8 @@ function update(req, res) {
         return;
     }
 
-    const taskListId = body.taskListId || prevData.taskListId;
-
     const taskListGet = require("../../../dao/task-list/get")
-    const taskList = taskListGet(taskListId)
+    const taskList = taskListGet(prevData.taskListId)
 
     if (!taskList) {
         res.status(404).json({ error: "Task list not found" }).send();
@@ -60,7 +57,7 @@ function update(req, res) {
     daoDel(body.id);
 
     const daoCreate = require("../../../dao/task/create");
-    const data = daoCreate(taskListId, toWrite.text, toWrite.state, userId);
+    const data = daoCreate(prevData.taskListId, toWrite.text, toWrite.state, userId);
 
     res.status(200).json(data).send();
 }
