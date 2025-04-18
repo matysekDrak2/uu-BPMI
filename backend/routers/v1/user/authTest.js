@@ -8,28 +8,12 @@ addFormats(ajv)
 const auth = require('../session/auth')
 router.use(auth)
 
-const user_login_tmpl = {
-    type: 'object',
-    properties: {
-        sessionKey: { type: 'string', minLength: 36, maxLength: 36 }
-    },
-    required: ['sessionKey'],
-    additionalProperties: false
-}
-const validator = ajv.compile(user_login_tmpl);
-
-router.post('/', (req, res) => {
-    const data = req.body;
-    const valid = validator(data)
-    if ( !valid ) {
-        res.status(400).json(validator.errors).send()
-        return
-    }
+router.get('/', (req, res) => {
     let resData = {}
-    resData.sessionKey = data.sessionKey
+    resData.sessionKey = req.headers.sessionkey
 
-    const getUsetIdFromSession = require('../../../dao/session/getUser')
-    resData.userId = getUsetIdFromSession(data.sessionKey);
+    const getUserIdFromSession = require('../../../dao/session/getUser')
+    resData.userId = getUserIdFromSession(req.headers.sessionkey);
 
     const getUser = require('../../../dao/user/get')
     resData = {...resData, ...getUser(resData.userId)}
