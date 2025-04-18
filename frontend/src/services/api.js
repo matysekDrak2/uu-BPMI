@@ -207,9 +207,9 @@ const taskListService = {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'sessionkey': sessionId
                 },
                 body: JSON.stringify({
-                    sessionKey: sessionId,
                     name: name
                 }),
             });
@@ -229,15 +229,12 @@ const taskListService = {
                 throw new Error('User is not signed');
             }
 
-            const response = await fetch(`${API_BASE_URL}/taskList`, {
-                method: 'POST',
+            const response = await fetch(`${API_BASE_URL}/taskList?listId=${listId}`, {
+                method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    sessionKey: sessionId,
-                    listId: listId
-                })
+                    'sessionkey': sessionId
+                }
             });
 
             return await handleResponse(response, 'Unable to load task lists');

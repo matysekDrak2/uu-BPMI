@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import CreateTaskModal from './CreateTaskModal';
+import TaskDetailModal from './TaskDetailModal';
 import { taskService } from '../services/api';
 import './TaskList.css';
 
 const TaskList = ({ isVisible, taskList }) => {
     const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+    const [selectedTask, setSelectedTask] = useState(null);
     const [tasks, setTasks] = useState({
         open: [],      // state = 0
         inProgress: [], // state = 1
@@ -67,6 +70,75 @@ const TaskList = ({ isVisible, taskList }) => {
         }
     };
 
+    const handleViewTask = (task) => {
+        setSelectedTask(task);
+        setIsDetailModalOpen(true);
+    };
+
+    const parseTaskBasicInfo = (text) => {
+        if (!text) return { title: 'Untitled Task', priority: 'normal', description: '' };
+
+        const lines = text.split('\n');
+        let title = 'Untitled Task';
+        let priority = 'normal';
+        let description = '';
+
+        for (const line of lines) {
+            if (line.startsWith('Název:')) {
+                title = line.substring(6).trim();
+                // Truncate title to 15 characters if longer
+                if (title.length > 15) {
+                    title = title.substring(0, 15) + '...';
+                }
+            } else if (line.startsWith('Priorita:')) {
+                priority = line.substring(9).trim();
+            } else if (line.startsWith('Popis:')) {
+                description = line.substring(6).trim();
+                // Truncate description to 35 characters if longer
+                if (description.length > 35) {
+                    description = description.substring(0, 35) + '...';
+                }
+            }
+        }
+
+        return { title, priority, description };
+    };
+
+    const renderTaskCard = (task) => {
+        const { title, priority, description } = parseTaskBasicInfo(task.text);
+        return (
+            <div
+                key={task.id}
+                className="task-card"
+            >
+                <div className="task-card-header">
+                    <h4 className="task-title">{title}</h4>
+                </div>
+                {description && <p className="task-description-preview">{description}</p>}
+                <div className="task-card-footer">
+                    <span className={`task-priority priority-${priority.toLowerCase()}`}>
+                        {getPriorityLabel(priority)}
+                    </span>
+                    <button
+                        className="view-task-button"
+                        onClick={() => handleViewTask(task)}
+                        title="Zobrazit detail"
+                    >
+                        👁️
+                    </button>
+                </div>
+            </div>
+        );
+    };
+
+    const getPriorityLabel = (priority) => {
+        switch (priority.toLowerCase()) {
+            case 'high': return 'Vysoká';
+            case 'low': return 'Nízká';
+            default: return 'Střední';
+        }
+    };
+
     return (
         <div className={`tasklist ${isVisible ? 'visible' : 'hidden'}`}>
             {taskList && (
@@ -90,37 +162,19 @@ const TaskList = ({ isVisible, taskList }) => {
                 <div className="column">
                     <h4>Otevřené</h4>
                     <div className="tasks-container">
-                        {tasks.open.map(task => (
-                            <div key={task.id} className="task-card">
-                                <div className="task-content">
-                                    {task.text}
-                                </div>
-                            </div>
-                        ))}
+                        {tasks.open.map(task => renderTaskCard(task))}
                     </div>
                 </div>
                 <div className="column">
                     <h4>Probíhající</h4>
                     <div className="tasks-container">
-                        {tasks.inProgress.map(task => (
-                            <div key={task.id} className="task-card">
-                                <div className="task-content">
-                                    {task.text}
-                                </div>
-                            </div>
-                        ))}
+                        {tasks.inProgress.map(task => renderTaskCard(task))}
                     </div>
                 </div>
                 <div className="column">
                     <h4>Dokončené</h4>
                     <div className="tasks-container">
-                        {tasks.completed.map(task => (
-                            <div key={task.id} className="task-card">
-                                <div className="task-content">
-                                    {task.text}
-                                </div>
-                            </div>
-                        ))}
+                        {tasks.completed.map(task => renderTaskCard(task))}
                     </div>
                 </div>
             </div>
@@ -131,6 +185,14 @@ const TaskList = ({ isVisible, taskList }) => {
                 onSubmit={(text) => handleTaskSubmit(taskList.id, text)}
                 taskListId={taskList ? taskList.id : null}
             />
+
+            {selectedTask && (
+                <TaskDetailModal
+                    isOpen={isDetailModalOpen}
+                    task={selectedTask}
+                    onClose={() => setIsDetailModalOpen(false)}
+                />
+            )}
         </div>
     );
 };
