@@ -42,7 +42,7 @@ const CreateTaskModal = ({ isOpen, onClose, onSubmit, taskListId }) => {
             (taskData.deadline ? `Termín: ${taskData.deadline}\n` : '') +
             (taskData.attachments ? `Příloha: ${taskData.attachments.name}` : '');
 
-        onSubmit(taskListId, taskText);
+        onSubmit(taskText);
     };
 
     return (

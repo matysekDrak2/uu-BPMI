@@ -47,11 +47,17 @@ const TaskList = ({ isVisible, taskList }) => {
             // Create the task with state 0 (open)
             const newTask = await taskService.createTask(taskListId, taskText, 0);
 
-            // Add the new task to the open tasks
-            setTasks({
-                ...tasks,
-                open: [...tasks.open, newTask]
-            });
+            // Check if newTask is valid before updating state
+            if (newTask && newTask.id) {
+                // Add the new task to the open tasks
+                setTasks(prevTasks => ({
+                    ...prevTasks,
+                    open: [...prevTasks.open, newTask]
+                }));
+            } else {
+                // If the newTask object is invalid, reload all tasks
+                await loadTasks();
+            }
 
             // Close the modal
             setIsTaskModalOpen(false);
