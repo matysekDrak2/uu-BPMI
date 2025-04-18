@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import CreateTaskModal from './CreateTaskModal';
 import { taskService } from '../services/api';
 import './TaskList.css';
@@ -11,6 +11,30 @@ const TaskList = ({ isVisible, taskList }) => {
         completed: []   // state = 2
     });
     const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(false);
+
+    // Load tasks when the component mounts or when taskList changes
+    useEffect(() => {
+        if (isVisible && taskList && taskList.id) {
+            loadTasks();
+        }
+    }, [isVisible, taskList]);
+
+    const loadTasks = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            const taskData = await taskService.getTasksByListId(taskList.id);
+            setTasks(taskData);
+
+            setLoading(false);
+        } catch (err) {
+            console.error('Error loading tasks:', err);
+            setError(err.message || 'Nepodařilo se načíst úkoly');
+            setLoading(false);
+        }
+    };
 
     const handleCreateTask = () => {
         setError(null);
@@ -52,6 +76,7 @@ const TaskList = ({ isVisible, taskList }) => {
                     </div>
 
                     {error && <div className="error-message">{error}</div>}
+                    {loading && <div className="loading-message">Načítání úkolů...</div>}
                 </>
             )}
 

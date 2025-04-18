@@ -325,7 +325,38 @@ const taskService = {
             console.error('Update task error:', error);
             throw error;
         }
-    }
+    },
+
+    getTasksByListId: async function (taskListId) {
+        try {
+            const sessionId = sessionManager.getSessionId();
+
+            if (!sessionId) {
+                throw new Error('Uživatel není přihlášen');
+            }
+
+            // Use the proper endpoint for getting all tasks for a task list
+            const response = await fetch(`${API_BASE_URL}/taskList/tasks?taskListId=${taskListId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'sessionkey': sessionId
+                }
+            });
+
+            const tasks = await handleResponse(response, 'Nepodařilo se načíst úkoly');
+
+            // Organize the tasks by state
+            return {
+                open: tasks.filter(task => task.state === 0),
+                inProgress: tasks.filter(task => task.state === 1),
+                completed: tasks.filter(task => task.state === 2)
+            };
+        } catch (error) {
+            console.error('Get tasks by list ID error:', error);
+            throw error;
+        }
+    },
 };
 
 export { authService, taskListService, taskService }; 
