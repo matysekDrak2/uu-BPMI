@@ -107,6 +107,12 @@ const TaskList = ({ isVisible, taskList }) => {
 
     // Drag handlers
     const handleDragStart = (e, task) => {
+        // Pokud je úkol dokončený (state = 2), zabráníme přetahování
+        if (task.state === 2) {
+            e.preventDefault();
+            return false;
+        }
+
         setDraggedTask(task);
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', task.id);
@@ -181,6 +187,11 @@ const TaskList = ({ isVisible, taskList }) => {
 
         const taskId = e.dataTransfer.getData('text/plain');
         const originalState = draggedTask.state;
+
+        // Pokud je úkol už dokončený (state = 2), zabráníme jakékoliv manipulaci
+        if (originalState === 2) {
+            return;
+        }
 
         // Určení cílového úkolu (pokud přetahujeme v rámci sloupce)
         const targetTaskCard = e.target.closest('.task-card');
@@ -287,7 +298,7 @@ const TaskList = ({ isVisible, taskList }) => {
 
             // Update in backend
             try {
-                // Uložíme aktualizovaný úkol a získáme nové ID (backend při aktualizaci vytvoří nový úkol)
+                // Uložíme aktualizovaný úkol a získáme nové ID (backend při aktualizaci vytvořil nový úkol)
                 const updatedTaskResponse = await taskService.updateTask(taskId, { state: targetState });
 
                 // Backend vrací celý aktualizovaný úkol včetně nového ID
@@ -329,12 +340,14 @@ const TaskList = ({ isVisible, taskList }) => {
 
     const renderTaskCard = (task) => {
         const { title, priority, description } = parseTaskBasicInfo(task.text);
+        const isCompleted = task.state === 2;
+
         return (
             <div
                 key={task.id}
                 data-id={task.id}
-                className="task-card"
-                draggable
+                className={`task-card ${isCompleted ? 'completed-task' : ''}`}
+                draggable={!isCompleted} // Dokončené úkoly nelze přetahovat
                 onDragStart={(e) => handleDragStart(e, task)}
                 onDragEnd={handleDragEnd}
                 onDragOver={handleDragOver}
