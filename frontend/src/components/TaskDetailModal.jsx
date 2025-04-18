@@ -4,7 +4,6 @@ import { taskService } from '../services/api';
 const TaskDetailModal = ({ isOpen, task, onClose }) => {
     if (!isOpen || !task) return null;
 
-    // Stavy pro editaci
     const [editing, setEditing] = useState(null);
     const [editValue, setEditValue] = useState('');
     const [error, setError] = useState(null);
@@ -57,7 +56,6 @@ const TaskDetailModal = ({ isOpen, task, onClose }) => {
                 return dateString;
             }
 
-            // Get Czech month name
             const czechMonths = [
                 'leden', 'únor', 'březen', 'duben', 'květen', 'červen',
                 'červenec', 'srpen', 'září', 'říjen', 'listopad', 'prosinec'
@@ -73,19 +71,16 @@ const TaskDetailModal = ({ isOpen, task, onClose }) => {
 
     const taskData = parseTaskData(task.text);
 
-    // Funkce pro zahájení editace
     const startEditing = (field, value) => {
         setEditing(field);
         setEditValue(value || '');
     };
 
-    // Funkce pro zrušení editace
     const cancelEditing = () => {
         setEditing(null);
         setEditValue('');
     };
 
-    // Funkce pro uložení změn
     const saveEdit = async () => {
         if (!editing) return;
 
@@ -93,11 +88,10 @@ const TaskDetailModal = ({ isOpen, task, onClose }) => {
         setError(null);
 
         try {
-            // Vytvoříme nový text úkolu se změněným polem
             let lines = task.text.split('\n');
             let updated = false;
 
-            // Aktualizujeme hodnotu v existujícím řádku
+            // We update the value in the existing line
             for (let i = 0; i < lines.length; i++) {
                 if (lines[i].startsWith(`${editing}:`)) {
                     lines[i] = `${editing}: ${editValue}`;
@@ -106,26 +100,22 @@ const TaskDetailModal = ({ isOpen, task, onClose }) => {
                 }
             }
 
-            // Pokud pole neexistuje, přidáme ho
             if (!updated) {
                 lines.push(`${editing}: ${editValue}`);
             }
 
             const updatedText = lines.join('\n');
 
-            // Odeslat na server a zachytit odpověď
             const updatedTask = await taskService.updateTask(task.id, { text: updatedText });
 
-            // Aktualizovat ID úkolu i text
             if (updatedTask && updatedTask.id) {
-                task.id = updatedTask.id; // Aktualizace ID
+                task.id = updatedTask.id;
                 task.text = updatedTask.text || updatedText;
                 console.log('Úkol aktualizován, nové ID:', updatedTask.id);
             } else {
                 task.text = updatedText;
             }
 
-            // Ukončit editaci
             setEditing(null);
             setSaving(false);
         } catch (err) {
