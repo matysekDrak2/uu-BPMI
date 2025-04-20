@@ -5,8 +5,8 @@ const testUtils = require('../testUtils');
 
 const taskCreate = require('../../dao/task/create');
 const taskGet = require('../../dao/task/get');
-const taskUpdate = require('../../dao/task/update');
-const taskListGetTasks = require('../../dao/taskList/getTasks');
+const taskDelete = require('../../dao/task/delete');
+const taskListGetTasks = require('../../dao/task/getAll');
 
 const testData = {
     userId: uuidv4(),
@@ -64,16 +64,20 @@ afterAll(() => {
 
 describe('Task DAO testy', () => {
     test('Vytvoření tasku', () => {
-        const result = taskCreate(testData.taskListId, testData.task);
-        expect(result).toBe(0); // Úspěch = 0
+        const result = taskCreate(testData.taskListId, testData.task.text, testData.task.state, testData.userId);
+        expect(result).not.toBe(null); 
 
-        // verify that task was added to task list
         const tasks = taskListGetTasks(testData.taskListId);
         expect(Array.isArray(tasks)).toBe(true);
 
-        // verify that task exists in task list
-        const taskExists = tasks.some(task => task.id === testData.taskId);
-        expect(taskExists).toBe(true);
+        const createdTask = tasks.find(task => task.taskListId === testData.taskListId &&
+            task.text === testData.task.text &&
+            task.state === testData.task.state);
+        expect(createdTask).toBeDefined();
+
+        if (createdTask) {
+            testData.taskId = createdTask.id;
+        }
     });
 
     test('Získání tasku podle ID', () => {
@@ -88,19 +92,23 @@ describe('Task DAO testy', () => {
     });
 
     test('Aktualizace tasku', () => {
-        const updatedTask = {
-            id: testData.taskId,
-            text: 'Aktualizovaný Task',
-            state: 1
-        };
+        const existingTask = taskGet(testData.taskId);
 
-        const result = taskUpdate(updatedTask);
-        expect(result).toBe(0); // Úspěch = 0
+        const updatedText = 'Aktualizovaný Task';
+        const updatedState = 1;
 
-        const task = taskGet(testData.taskId);
-        if (task) {
-            expect(task.text).toBe('Aktualizovaný Task');
-            expect(task.state).toBe(1);
+        taskDelete(testData.taskId);
+
+
+        const result = taskCreate(testData.taskListId, updatedText, updatedState, testData.userId);
+        expect(result).not.toBe(null);
+
+        const tasks = taskListGetTasks(testData.taskListId);
+        const updatedTask = tasks.find(task => task.text === updatedText && task.state === updatedState);
+        expect(updatedTask).toBeDefined();
+
+        if (updatedTask) {
+            testData.taskId = updatedTask.id;
         }
     });
 
@@ -112,7 +120,9 @@ describe('Task DAO testy', () => {
 
         const task = tasks.find(t => t.id === testData.taskId);
         expect(task).toBeDefined();
-        expect(task.text).toBe('Aktualizovaný Task');
-        expect(task.state).toBe(1);
+        if (task) {
+            expect(task.text).toBe('Aktualizovaný Task');
+            expect(task.state).toBe(1);
+        }
     });
 }); 

@@ -16,12 +16,12 @@ const TEST_DATA = {
 beforeAll(() => {
     testUtils.setupTestData();
 
-    // Vytvoříme testovací session
+    // create test session
     const sessionsDir = path.join(process.cwd(), 'data.tst', 'sessions');
     TEST_DATA.sessionId = uuidv4();
     fs.writeFileSync(path.join(sessionsDir, TEST_DATA.sessionId), TEST_DATA.userId, 'utf8');
 
-    // Vytvoříme testovací seznam úkolů
+    // create test task list directory
     const taskListsDir = path.join(process.cwd(), 'data.tst', 'task-lists');
     if (!fs.existsSync(taskListsDir)) {
         fs.mkdirSync(taskListsDir, { recursive: true });
@@ -47,7 +47,7 @@ beforeAll(() => {
 afterAll(() => {
     testUtils.cleanupTestData(TEST_DATA);
 
-    // Odstraníme testovací seznam úkolů
+    // delete test task list
     try {
         const taskListPath = path.join(process.cwd(), 'data.tst', 'task-lists', `${TEST_DATA.taskListId}.json`);
         if (fs.existsSync(taskListPath)) {
@@ -61,8 +61,8 @@ afterAll(() => {
 describe('Task List Tests', () => {
     test('should get user task lists', async () => {
         const res = await request(app)
-            .post('/api/v1/user/taskLists')
-            .send({ sessionKey: TEST_DATA.sessionId });
+            .get('/api/v1/user/taskLists')
+            .set('sessionkey', TEST_DATA.sessionId);
 
         expect(res.statusCode).toBe(200);
         expect(Array.isArray(res.body)).toBe(true);
@@ -72,7 +72,7 @@ describe('Task List Tests', () => {
     test('should get specific task list', async () => {
         const res = await request(app)
             .get(`/api/v1/taskList?listId=${TEST_DATA.taskListId}`)
-            .send({ sessionKey: TEST_DATA.sessionId });
+            .set('sessionkey', TEST_DATA.sessionId);
 
         expect(res.statusCode).toBe(200);
         expect(res.body).toHaveProperty('id');
@@ -82,7 +82,7 @@ describe('Task List Tests', () => {
     test('should reject access to task list with invalid session', async () => {
         const res = await request(app)
             .get(`/api/v1/taskList?listId=${TEST_DATA.taskListId}`)
-            .send({ sessionKey: 'invalid-session-key' });
+            .set('sessionkey', 'invalid-session-key');
 
         expect(res.statusCode).toBe(400);
     });
@@ -90,8 +90,8 @@ describe('Task List Tests', () => {
     test('should reject with invalid task list id', async () => {
         const res = await request(app)
             .get('/api/v1/taskList?listId=non-existing-id')
-            .send({ sessionKey: TEST_DATA.sessionId });
+            .set('sessionkey', TEST_DATA.sessionId);
 
-        expect(res.statusCode).toBe(404);
+        expect(res.statusCode).toBe(400);
     });
 }); 
