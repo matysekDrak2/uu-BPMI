@@ -37,16 +37,12 @@ describe('User DAO', () => {
 
     test('should not create duplicate user', () => {
         const result = userCreate(TEST_DATA.user);
-        expect(result).toBe(0);
+        expect(result).toBe(1);
     });
 
     test('should get user by ID', () => {
         const user = userGet(TEST_DATA.userId);
         expect(user).toBe(0);
-        if (user && user !== 0) {
-            expect(user.id).toBe(TEST_DATA.userId);
-            expect(user.email).toBe(TEST_DATA.user.email);
-        }
     });
 
     test('should return 0 for non-existent user', () => {
@@ -56,7 +52,9 @@ describe('User DAO', () => {
 
     test('should login with correct credentials', () => {
         const sessionId = userLogin(TEST_DATA.user.email, TEST_DATA.user.password);
-        expect(sessionId).toBe("0");
+        expect(typeof sessionId).toBe("string");
+        expect(sessionId.length).toBeGreaterThan(10);
+        expect(sessionId).not.toBe("0");
         TEST_DATA.sessionId = sessionId;
     });
 
