@@ -3,7 +3,7 @@ import CreateTaskListModal from './CreateTaskListModal';
 import TaskListDropdown from './TaskListDropdown';
 import TaskList from './TaskList';
 import { taskListService, authService } from '../services/api';
-import './Dashboard.css';
+import '../styles/Dashboard.css';
 
 const Dashboard = () => {
     const [taskLists, setTaskLists] = useState([]);

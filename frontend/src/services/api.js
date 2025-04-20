@@ -207,9 +207,9 @@ const taskListService = {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'sessionkey': sessionId
                 },
                 body: JSON.stringify({
-                    sessionKey: sessionId,
                     name: name
                 }),
             });
@@ -229,15 +229,12 @@ const taskListService = {
                 throw new Error('User is not signed');
             }
 
-            const response = await fetch(`${API_BASE_URL}/taskList`, {
-                method: 'POST',
+            const response = await fetch(`${API_BASE_URL}/taskList?listId=${listId}`, {
+                method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    sessionKey: sessionId,
-                    listId: listId
-                })
+                    'sessionkey': sessionId
+                }
             });
 
             return await handleResponse(response, 'Unable to load task lists');
@@ -248,4 +245,129 @@ const taskListService = {
     }
 };
 
-export { authService, taskListService }; 
+const taskService = {
+    createTask: async function (taskListId, text, state = 0) {
+        try {
+            const sessionId = sessionManager.getSessionId();
+
+            if (!sessionId) {
+                throw new Error('User is not signed');
+            }
+
+            const response = await fetch(`${API_BASE_URL}/task`, {
+                method: 'PUT',  // PUT for task creation as per backend implementation
+                headers: {
+                    'Content-Type': 'application/json',
+                    'sessionkey': sessionId
+                },
+                body: JSON.stringify({
+                    taskListId: taskListId,
+                    text: text,
+                    state: state
+                })
+            });
+
+            return await handleResponse(response, 'Unable to create task');
+        } catch (error) {
+            console.error('Create task error:', error);
+            throw error;
+        }
+    },
+
+    getTask: async function (taskId) {
+        try {
+            const sessionId = sessionManager.getSessionId();
+
+            if (!sessionId) {
+                throw new Error('User is not signed');
+            }
+
+            const response = await fetch(`${API_BASE_URL}/task?id=${taskId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'sessionkey': sessionId
+                }
+            });
+
+            return await handleResponse(response, 'Unable to load task');
+        } catch (error) {
+            console.error('Get task error:', error);
+            throw error;
+        }
+    },
+
+    updateTask: async function (taskId, updatedData) {
+        try {
+            const sessionId = sessionManager.getSessionId();
+
+            if (!sessionId) {
+                throw new Error('User is not signed');
+            }
+
+            // Získáme aktuální úkol pro ověření existence
+            const task = await this.getTask(taskId);
+
+            if (!task) {
+                throw new Error('Unable to load task');
+            }
+
+            // Odesíláme pouze vlastnosti, které validační schéma backendu povoluje
+            const updateData = {
+                id: taskId,
+                text: updatedData.text !== undefined ? updatedData.text : task.text,
+                state: updatedData.state !== undefined ? updatedData.state : task.state
+            };
+
+            console.log('Odesílám data pro aktualizaci úkolu:', updateData);
+
+            const response = await fetch(`${API_BASE_URL}/task`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'sessionkey': sessionId
+                },
+                body: JSON.stringify(updateData)
+            });
+
+            const updatedTask = await handleResponse(response, 'Unable to update task');
+            return updatedTask; 
+        } catch (error) {
+            console.error('Update task error:', error);
+            throw error;
+        }
+    },
+
+    getTasksByListId: async function (taskListId) {
+        try {
+            const sessionId = sessionManager.getSessionId();
+
+            if (!sessionId) {
+                throw new Error('User is not signed');
+            }
+
+            // Use the proper endpoint for getting all tasks for a task list
+            const response = await fetch(`${API_BASE_URL}/taskList/tasks?taskListId=${taskListId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'sessionkey': sessionId
+                }
+            });
+
+            const tasks = await handleResponse(response, 'Unable to load tasks');
+
+            // Organize the tasks by state
+            return {
+                open: tasks.filter(task => task.state === 0),
+                inProgress: tasks.filter(task => task.state === 1),
+                completed: tasks.filter(task => task.state === 2)
+            };
+        } catch (error) {
+            console.error('Get tasks by list ID error:', error);
+            throw error;
+        }
+    },
+};
+
+export { authService, taskListService, taskService }; 
