@@ -22,8 +22,8 @@ function auth(req, res, next){
         return
     }
 
-    const getUsetIdFromSession = require("../../../dao/session/getUser");
-    const id = getUsetIdFromSession(sessionKey)
+    const getUserIdFromSession = require("../../../dao/session/getUser");
+    const id = getUserIdFromSession(sessionKey)
 
     if (id === ""){
         res.status(401).send()

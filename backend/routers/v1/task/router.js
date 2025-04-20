@@ -10,14 +10,14 @@ router.get("/", (req, res) => {
     get(req, res)
 });
 
-const create = require("./create");
+const update = require("./update");
 router.post("/", (req, res) => {
-    create(req, res)
+    update(req, res)
 })
 
-const getTasks = require("./getTasks");
-router.get("/tasks", (req, res) => {
-    getTasks(req, res)
+const create = require("./create");
+router.put("/", (req, res) => {
+    create(req, res)
 })
 
 module.exports = router;
