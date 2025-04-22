@@ -44,6 +44,7 @@ describe('DAO layrr', () => {
             TEST_DATA.sessionId = userLogin(TEST_DATA.user.email, TEST_DATA.user.password);
             expect(TEST_DATA.sessionId).toBe("0");
 
+
             expect(userLogin(TEST_DATA.user.email, 'wrong')).toBe("0");
         });
     });

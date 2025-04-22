@@ -16,6 +16,7 @@ function verifySession(app, sessionKey) {
     return request(app)
         .post('/api/v1/user/authTest')
         .send({ sessionKey });
+
 }
 
 module.exports = {

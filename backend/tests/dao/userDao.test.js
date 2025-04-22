@@ -38,6 +38,7 @@ describe('User DAO', () => {
     test('should not create duplicate user', () => {
         const result = userCreate(TEST_DATA.user);
         expect(result).toBe(0);
+
     });
 
     test('should get user by ID', () => {
