@@ -251,7 +251,7 @@ const taskService = {
             const sessionId = sessionManager.getSessionId();
 
             if (!sessionId) {
-                throw new Error('User is not signed');
+                throw new Error('Uživatel není přihlášen');
             }
 
             const response = await fetch(`${API_BASE_URL}/task`, {
@@ -267,7 +267,7 @@ const taskService = {
                 })
             });
 
-            return await handleResponse(response, 'Unable to create task');
+            return await handleResponse(response, 'Nepodařilo se vytvořit úkol');
         } catch (error) {
             console.error('Create task error:', error);
             throw error;
@@ -279,7 +279,7 @@ const taskService = {
             const sessionId = sessionManager.getSessionId();
 
             if (!sessionId) {
-                throw new Error('User is not signed');
+                throw new Error('Uživatel není přihlášen');
             }
 
             const response = await fetch(`${API_BASE_URL}/task?id=${taskId}`, {
@@ -290,7 +290,7 @@ const taskService = {
                 }
             });
 
-            return await handleResponse(response, 'Unable to load task');
+            return await handleResponse(response, 'Nepodařilo se načíst úkol');
         } catch (error) {
             console.error('Get task error:', error);
             throw error;
@@ -302,14 +302,14 @@ const taskService = {
             const sessionId = sessionManager.getSessionId();
 
             if (!sessionId) {
-                throw new Error('User is not signed');
+                throw new Error('Uživatel není přihlášen');
             }
 
             // Získáme aktuální úkol pro ověření existence
             const task = await this.getTask(taskId);
 
             if (!task) {
-                throw new Error('Unable to load task');
+                throw new Error('Nepodařilo se načíst úkol');
             }
 
             // Odesíláme pouze vlastnosti, které validační schéma backendu povoluje
@@ -330,8 +330,9 @@ const taskService = {
                 body: JSON.stringify(updateData)
             });
 
-            const updatedTask = await handleResponse(response, 'Unable to update task');
-            return updatedTask; 
+            // Zpracování odpovědi a vrácení dat včetně nového ID
+            const updatedTask = await handleResponse(response, 'Nepodařilo se aktualizovat úkol');
+            return updatedTask; // Backend vrací nový úkol s novým ID
         } catch (error) {
             console.error('Update task error:', error);
             throw error;
@@ -343,7 +344,7 @@ const taskService = {
             const sessionId = sessionManager.getSessionId();
 
             if (!sessionId) {
-                throw new Error('User is not signed');
+                throw new Error('Uživatel není přihlášen');
             }
 
             // Use the proper endpoint for getting all tasks for a task list
@@ -355,7 +356,7 @@ const taskService = {
                 }
             });
 
-            const tasks = await handleResponse(response, 'Unable to load tasks');
+            const tasks = await handleResponse(response, 'Nepodařilo se načíst úkoly');
 
             // Organize the tasks by state
             return {

@@ -35,7 +35,7 @@ describe('Auth Middleware', () => {
     test('should allow access with valid session', async () => {
         const res = await request(app)
             .post('/protected-route')
-            .set('sessionkey', TEST_DATA.sessionId);
+            .send({ sessionKey: TEST_DATA.sessionId });
 
         expect(res.statusCode).toBe(200);
     });

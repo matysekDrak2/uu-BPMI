@@ -19,11 +19,10 @@ const validator = ajv.compile(user_login_tmpl);
 function update(req, res) {
     const body = req.body;
     const userId = getUserId(req.headers.sessionkey)
-    if (!validator(body)) {
+    if (!validator(body)){
         res.status(400).json(validator.errors).send()
         return
     }
-
     const daoGet = require("../../../dao/task/get");
     const prevData = daoGet(body.id);
 
@@ -57,7 +56,7 @@ function update(req, res) {
     daoDel(body.id);
 
     const daoCreate = require("../../../dao/task/create");
-    const data = daoCreate(prevData.taskListId, toWrite.text, toWrite.state, userId);
+    const data = daoCreate(toWrite.taskListId, toWrite.text, toWrite.state, userId);
 
     res.status(200).json(data).send();
 }
