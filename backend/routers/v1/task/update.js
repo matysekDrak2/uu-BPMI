@@ -18,7 +18,7 @@ const validator = ajv.compile(user_login_tmpl);
 
 function update(req, res) {
     const body = req.body;
-    const userId = getUserId(req.headers.sessionkey)
+    const userId = getUserId(req.header('sessionKey'))
     if (!validator(body)){
         res.status(400).json(validator.errors).send()
         return
