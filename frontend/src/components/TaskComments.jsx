@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { commentService } from '../services/api';
+import { commentService, userService } from '../services/api';
 import '../styles/TaskComments.css';
 
 const TaskComments = ({ taskId }) => {
@@ -8,6 +8,7 @@ const TaskComments = ({ taskId }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [submitting, setSubmitting] = useState(false);
+    const [userNames, setUserNames] = useState({});
 
     useEffect(() => {
         loadComments();
@@ -21,6 +22,28 @@ const TaskComments = ({ taskId }) => {
             setError(null);
             const commentData = await commentService.getCommentsByTask(taskId);
             setComments(commentData || []);
+
+            const uniqueCreatorIds = [...new Set(commentData.map(comment => comment.creator))];
+            const namesPromises = uniqueCreatorIds.map(async (creatorId) => {
+                if (!creatorId) return null;
+                try {
+                    const user = await userService.getUserById(creatorId);
+                    return { id: creatorId, name: user.name };
+                } catch (err) {
+                    console.error(`Error loading user ${creatorId}:`, err);
+                    return { id: creatorId, name: 'Neznámý uživatel' };
+                }
+            });
+
+            const userResults = await Promise.all(namesPromises);
+            const namesMap = {};
+            userResults.forEach(result => {
+                if (result) {
+                    namesMap[result.id] = result.name;
+                }
+            });
+
+            setUserNames(namesMap);
         } catch (err) {
             console.error('Error loading comments:', err);
             setError('Nepodařilo se načíst komentáře');
@@ -38,27 +61,13 @@ const TaskComments = ({ taskId }) => {
             setSubmitting(true);
             setError(null);
 
-            console.log('Odesílám komentář pro úkol:', taskId, 'Text:', newComment.trim());
-
-            const response = await commentService.createComment(taskId, newComment.trim());
-            console.log('Komentář úspěšně vytvořen:', response);
-
+            await commentService.createComment(taskId, newComment.trim());
             setNewComment('');
-
-            // Krátká pauza pro zajištění, že server stihne zpracovat změny
-            setTimeout(async () => {
-                try {
-                    await loadComments();
-                } catch (loadError) {
-                    console.error('Chyba při načítání komentářů po vytvoření:', loadError);
-                    setError('Komentář byl vytvořen, ale seznam se nepodařilo aktualizovat.');
-                } finally {
-                    setSubmitting(false);
-                }
-            }, 500);
+            await loadComments();
         } catch (err) {
             console.error('Error creating comment:', err);
-            setError('Nepodařilo se přidat komentář: ' + err.message);
+            setError('Nepodařilo se přidat komentář');
+        } finally {
             setSubmitting(false);
         }
     };
@@ -76,6 +85,10 @@ const TaskComments = ({ taskId }) => {
             hour: '2-digit',
             minute: '2-digit'
         }).format(date);
+    };
+
+    const getUserName = (creatorId) => {
+        return userNames[creatorId] || 'Uživatel';
     };
 
     return (
@@ -96,7 +109,7 @@ const TaskComments = ({ taskId }) => {
                                 <div key={comment.id} className="comment-item">
                                     <div className="comment-header">
                                         <span className="comment-author">
-                                            {comment.creator || 'Uživatel'}
+                                            {getUserName(comment.creator)}
                                         </span>
                                         <span className="comment-date">
                                             {formatDate(comment.createdAt)}

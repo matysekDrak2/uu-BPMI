@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { taskService } from '../services/api';
+import React, { useState, useEffect } from 'react';
+import { taskService, userService } from '../services/api';
 import TaskComments from './TaskComments';
 
 const TaskDetailModal = ({ isOpen, task, onClose }) => {
@@ -9,6 +9,25 @@ const TaskDetailModal = ({ isOpen, task, onClose }) => {
     const [editValue, setEditValue] = useState('');
     const [error, setError] = useState(null);
     const [saving, setSaving] = useState(false);
+    const [creatorName, setCreatorName] = useState('');
+
+    useEffect(() => {
+        if (task && task.creator) {
+            fetchCreatorName();
+        }
+    }, [task]);
+
+    const fetchCreatorName = async () => {
+        try {
+            const user = await userService.getUserById(task.creator);
+            if (user && user.name) {
+                setCreatorName(user.name);
+            }
+        } catch (err) {
+            console.error('Error fetching creator name:', err);
+            setCreatorName('Neznámý uživatel');
+        }
+    };
 
     const parseTaskData = (text) => {
         if (!text) return {};
@@ -265,15 +284,15 @@ const TaskDetailModal = ({ isOpen, task, onClose }) => {
                     {saving && <div className="loading-message">Ukládám změny...</div>}
                 </div>
 
+                {task && task.id && (
+                    <TaskComments taskId={task.id} />
+                )}
+
                 <div className="modal-buttons">
                     <button type="button" onClick={onClose}>
                         Zavřít
                     </button>
                 </div>
-
-                {task && task.id && (
-                    <TaskComments taskId={task.id} />
-                )}
             </div>
         </div>
     );

@@ -450,4 +450,29 @@ const commentService = {
     }
 };
 
-export { authService, taskListService, taskService, commentService }; 
+const userService = {
+    getUserById: async function (userId) {
+        try {
+            const sessionId = sessionManager.getSessionId();
+
+            if (!sessionId) {
+                throw new Error('Uživatel není přihlášen');
+            }
+
+            const response = await fetch(`${API_BASE_URL}/user/get?id=${userId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'sessionkey': sessionId
+                }
+            });
+
+            return await handleResponse(response, 'Nepodařilo se načíst uživatele');
+        } catch (error) {
+            console.error('Get user error:', error);
+            throw error;
+        }
+    }
+};
+
+export { authService, taskListService, taskService, commentService, userService }; 
