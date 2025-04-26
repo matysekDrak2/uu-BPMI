@@ -224,60 +224,56 @@ const TaskDetailModal = ({ isOpen, task, onClose }) => {
                         )}
                     </div>
 
-                    <div className="task-detail-info">
-                        <div className="task-detail-item">
-                            <span className="task-detail-label">
-                                <span className="deadline-icon">📅</span> Termín:
-                            </span>
-                            {editing === 'Termín' ? (
-                                <div className="edit-container">
-                                    <input
-                                        type="date"
-                                        value={editValue}
-                                        onChange={(e) => setEditValue(e.target.value)}
-                                        className="edit-input"
-                                    />
-                                    <div className="edit-buttons">
-                                        <button onClick={saveEdit} disabled={saving}>Uložit</button>
-                                        <button onClick={cancelEditing}>Zrušit</button>
-                                    </div>
+                    {/* Termín ve stejném stylu jako Popis */}
+                    <div className="task-detail-section">
+                        <h5>Termín</h5>
+                        {editing === 'Termín' ? (
+                            <div className="edit-container">
+                                <input
+                                    type="date"
+                                    value={editValue}
+                                    onChange={(e) => setEditValue(e.target.value)}
+                                    className="edit-input"
+                                />
+                                <div className="edit-buttons">
+                                    <button onClick={saveEdit} disabled={saving}>Uložit</button>
+                                    <button onClick={cancelEditing}>Zrušit</button>
                                 </div>
-                            ) : (
-                                <span
-                                    className="task-detail-value deadline-value clickable"
-                                    onClick={() => startEditing('Termín', taskData['Termín'])}
-                                >
-                                    {formatDate(taskData['Termín']) || 'Klikněte pro přidání termínu'}
-                                </span>
-                            )}
-                        </div>
+                            </div>
+                        ) : (
+                            <p
+                                className="clickable"
+                                onClick={() => startEditing('Termín', taskData['Termín'])}
+                            >
+                                {formatDate(taskData['Termín']) || 'Klikněte pro přidání termínu'}
+                            </p>
+                        )}
+                    </div>
 
-                        <div className="task-detail-item">
-                            <span className="task-detail-label">
-                                <span className="attachment-icon">📎</span> Příloha:
-                            </span>
-                            {editing === 'Příloha' ? (
-                                <div className="edit-container">
-                                    <input
-                                        type="text"
-                                        value={editValue}
-                                        onChange={(e) => setEditValue(e.target.value)}
-                                        className="edit-input"
-                                    />
-                                    <div className="edit-buttons">
-                                        <button onClick={saveEdit} disabled={saving}>Uložit</button>
-                                        <button onClick={cancelEditing}>Zrušit</button>
-                                    </div>
+                    {/* Příloha ve stejném stylu jako Popis */}
+                    <div className="task-detail-section">
+                        <h5>Příloha</h5>
+                        {editing === 'Příloha' ? (
+                            <div className="edit-container">
+                                <input
+                                    type="text"
+                                    value={editValue}
+                                    onChange={(e) => setEditValue(e.target.value)}
+                                    className="edit-input"
+                                />
+                                <div className="edit-buttons">
+                                    <button onClick={saveEdit} disabled={saving}>Uložit</button>
+                                    <button onClick={cancelEditing}>Zrušit</button>
                                 </div>
-                            ) : (
-                                <span
-                                    className="task-detail-value attachment-value clickable"
-                                    onClick={() => startEditing('Příloha', taskData['Příloha'])}
-                                >
-                                    {taskData['Příloha'] || 'Klikněte pro přidání přílohy'}
-                                </span>
-                            )}
-                        </div>
+                            </div>
+                        ) : (
+                            <p
+                                className="clickable"
+                                onClick={() => startEditing('Příloha', taskData['Příloha'])}
+                            >
+                                {taskData['Příloha'] || 'Klikněte pro přidání přílohy'}
+                            </p>
+                        )}
                     </div>
 
                     {error && <div className="modal-error">{error}</div>}
