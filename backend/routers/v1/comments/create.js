@@ -33,16 +33,18 @@ module.exports = function create(req, res) {
     const getListById = require('../../../dao/task-list/get');
     const taskList = getListById(task.taskListId);
 
-    if ( taskList.owner !== userId &&
+    if (taskList.owner !== userId &&
         !taskList.admins.includes(userId) &&
         !taskList.members.includes(userId)
-    ){
+    ) {
         res.status(403).send("Not authorized in this task list")
         return
     }
 
     comment.creator = userId;
     comment.id = uuidv4();
+    comment.createdAt = new Date().toISOString();
+    comment.task = comment.taskId; // Pro kompatibilitu s get.js
 
     const newComment = createComment(comment);
     res.status(201).json(newComment).send();

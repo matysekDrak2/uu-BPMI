@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { taskService } from '../services/api';
+import TaskComments from './TaskComments';
 
 const TaskDetailModal = ({ isOpen, task, onClose }) => {
     if (!isOpen || !task) return null;
@@ -269,6 +270,10 @@ const TaskDetailModal = ({ isOpen, task, onClose }) => {
                         Zavřít
                     </button>
                 </div>
+
+                {task && task.id && (
+                    <TaskComments taskId={task.id} />
+                )}
             </div>
         </div>
     );
