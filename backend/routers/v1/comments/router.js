@@ -10,4 +10,14 @@ router.get("/", (req, res) => {
     getComments(req, res);
 });
 
+const updateComment = require("./update");
+router.post("/", (req, res) => {
+    updateComment(req, res);
+});
+
+const createComment = require("./create");
+router.put("/", (req, res) => {
+    createComment(req, res);
+});
+
 module.exports = router;
