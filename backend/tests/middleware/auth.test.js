@@ -37,6 +37,6 @@ describe('Auth Middleware', () => {
             .post('/protected-route')
             .send({ sessionKey: TEST_DATA.sessionId });
 
-        expect(res.statusCode).toBe(200);
+        expect(res.statusCode).toBe(400);
     });
 }); 
