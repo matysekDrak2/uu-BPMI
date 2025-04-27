@@ -10,4 +10,7 @@ router.use("/taskList", taskList)
 const task = require("./task/router");
 router.use("/task", task)
 
+const comment = require("./comments/router");
+router.use("/comment", comment)
+
 module.exports = router;
