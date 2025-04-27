@@ -18,5 +18,4 @@ module.exports = function create(comment) {
 
     fs.writeFileSync(filePath, JSON.stringify(comments, null, 2), 'utf8');
 
-    return null
 }

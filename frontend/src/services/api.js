@@ -371,4 +371,108 @@ const taskService = {
     },
 };
 
-export { authService, taskListService, taskService }; 
+const commentService = {
+    getCommentsByTask: async function (taskId) {
+        try {
+            const sessionId = sessionManager.getSessionId();
+
+            if (!sessionId) {
+                throw new Error('Uživatel není přihlášen');
+            }
+
+            const response = await fetch(`${API_BASE_URL}/comment?id=${taskId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'sessionkey': sessionId
+                }
+            });
+
+            return await handleResponse(response, 'Nepodařilo se načíst komentáře');
+        } catch (error) {
+            console.error('Get comments error:', error);
+            throw error;
+        }
+    },
+
+    createComment: async function (taskId, text) {
+        try {
+            const sessionId = sessionManager.getSessionId();
+
+            if (!sessionId) {
+                throw new Error('Uživatel není přihlášen');
+            }
+
+            const response = await fetch(`${API_BASE_URL}/comment`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'sessionkey': sessionId
+                },
+                body: JSON.stringify({
+                    taskId: taskId,
+                    text: text
+                })
+            });
+
+            return await handleResponse(response, 'Nepodařilo se vytvořit komentář');
+        } catch (error) {
+            console.error('Create comment error:', error);
+            throw error;
+        }
+    },
+
+    updateComment: async function (commentId, text) {
+        try {
+            const sessionId = sessionManager.getSessionId();
+
+            if (!sessionId) {
+                throw new Error('Uživatel není přihlášen');
+            }
+
+            const response = await fetch(`${API_BASE_URL}/comment`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'sessionkey': sessionId
+                },
+                body: JSON.stringify({
+                    id: commentId,
+                    text: text
+                })
+            });
+
+            return await handleResponse(response, 'Nepodařilo se aktualizovat komentář');
+        } catch (error) {
+            console.error('Update comment error:', error);
+            throw error;
+        }
+    }
+};
+
+const userService = {
+    getUserById: async function (userId) {
+        try {
+            const sessionId = sessionManager.getSessionId();
+
+            if (!sessionId) {
+                throw new Error('Uživatel není přihlášen');
+            }
+
+            const response = await fetch(`${API_BASE_URL}/user/get?id=${userId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'sessionkey': sessionId
+                }
+            });
+
+            return await handleResponse(response, 'Nepodařilo se načíst uživatele');
+        } catch (error) {
+            console.error('Get user error:', error);
+            throw error;
+        }
+    }
+};
+
+export { authService, taskListService, taskService, commentService, userService }; 

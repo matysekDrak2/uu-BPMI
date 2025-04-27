@@ -21,7 +21,7 @@ const getTaskList = require('../../../dao/task-list/get');
 
 module.exports = function getComments(req, res) {
     const query = req.query;
-    const userId = getUserId(req.header.header('sessionKey'));
+    const userId = getUserId(req.headers.sessionkey);
 
     if (!validateRequest(query)) {
         res.status(400).json(validateRequest.errors).send();

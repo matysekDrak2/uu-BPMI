@@ -43,6 +43,7 @@ module.exports = function create(req, res) {
 
     comment.creator = userId;
     comment.id = uuidv4();
+    comment.createdAt = new Date().toISOString();
 
     const newComment = createComment(comment);
     res.status(201).json(newComment).send();
