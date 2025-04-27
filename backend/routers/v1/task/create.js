@@ -2,6 +2,7 @@ const Ajv = require('ajv');
 const ajv = new Ajv({allErrors: true});
 const addFormats = require("ajv-formats")
 const getUserId = require("../../../dao/session/getUser");
+const { v4: uuidv4 } = require('uuid');
 addFormats(ajv)
 
 const user_login_tmpl = {
@@ -36,9 +37,17 @@ function create(req, res) {
     }
 
     const daoCreate = require("../../../dao/task/create");
-    const data = daoCreate(body.taskListId, body.text, body.state, userId);
 
-    res.status(200).json(data).send();
+    const task = {
+        id: uuidv4(),
+        taskListId: body.taskListId,
+        text: body.text,
+        state: body.state,
+        creatorId: userId
+    }
+    daoCreate(task);
+
+    res.status(200).json(task).send();
 }
 
 module.exports = create;

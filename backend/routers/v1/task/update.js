@@ -56,9 +56,9 @@ function update(req, res) {
     daoDel(body.id);
 
     const daoCreate = require("../../../dao/task/create");
-    const data = daoCreate(toWrite.taskListId, toWrite.text, toWrite.state, userId);
+    daoCreate(toWrite);
 
-    res.status(200).json(data).send();
+    res.status(200).json(toWrite).send();
 }
 
 module.exports = update;

@@ -11,10 +11,14 @@ router.use("/signin", signin)
 const authTest = require('./authTest');
 router.use('/authTest', authTest)
 
+const auth = require('../session/auth')
 const getTaskLists = require("./getTaskLists");
-router.use("/taskLists", getTaskLists)
+router.use("/taskLists", auth, getTaskLists)
+
 
 const getUserById = require('./get');
-router.use("/get", getUserById)
+router.get("/get", auth, (req, res) => {
+    getUserById(req, res)
+})
 
 module.exports = router;

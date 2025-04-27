@@ -1,9 +1,6 @@
 const express = require('express');
 const router = express.Router()
 
-const auth = require('../session/auth')
-router.use(auth)
-
 router.get('/', (req, res) => {
     const sessionKey = req.headers.sessionkey;
 
