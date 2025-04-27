@@ -8,7 +8,7 @@ const user_login_tmpl = {
     type: 'object',
     properties: {
         id: { type: 'string', maxLength: 36, minLength: 36 },
-        text: { type: 'string', maxLength: 200 },
+        text: { type: 'string', maxLength: 1200 },
         state: { type: 'number' },
     },
     required: ['id'],
