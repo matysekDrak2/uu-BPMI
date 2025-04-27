@@ -33,10 +33,10 @@ module.exports = function create(req, res) {
     const getListById = require('../../../dao/task-list/get');
     const taskList = getListById(task.taskListId);
 
-    if (taskList.owner !== userId &&
+    if ( taskList.owner !== userId &&
         !taskList.admins.includes(userId) &&
         !taskList.members.includes(userId)
-    ) {
+    ){
         res.status(403).send("Not authorized in this task list")
         return
     }
