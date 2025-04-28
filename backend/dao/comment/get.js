@@ -1,6 +1,8 @@
 const fs = require('fs');
 const path = require('path');
-
+/**
+ * @returns {Object} comment
+ * */
 module.exports = function getCommentsByTaskId(id) {
     const filePath = path.join(process.cwd(), 'data.tst', 'comments.json');
 
@@ -9,11 +11,11 @@ module.exports = function getCommentsByTaskId(id) {
             if (err) throw err;
         });
         fs.writeFileSync(filePath, JSON.stringify([]))
-        return [];
+        return undefined;
     }
 
     const data = fs.readFileSync(filePath, 'utf8');
     const comments = JSON.parse(data);
 
-    return comments.filter(comment => comment.task === id);
+    return comments.find(comment => comment.task === id);
 }

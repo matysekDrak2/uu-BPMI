@@ -13,4 +13,7 @@ router.use("/task", task)
 const comment = require("./comments/router");
 router.use("/comment", comment)
 
+const attachment = require("./attachment/router");
+router.use("/attachment", attachment)
+
 module.exports = router;

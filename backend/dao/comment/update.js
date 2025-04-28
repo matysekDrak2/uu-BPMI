@@ -1,5 +1,5 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 
 module.exports = function getUpdateByCommentId(id, comment) {
     const filePath = path.join(process.cwd(), 'data.tst', 'comments.json');

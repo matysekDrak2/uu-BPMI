@@ -43,7 +43,8 @@ function create(req, res) {
         taskListId: body.taskListId,
         text: body.text,
         state: body.state,
-        creatorId: userId
+        creatorId: userId,
+        attachments: []
     }
     daoCreate(task);
 

@@ -30,6 +30,8 @@ function auth(req, res, next){
         return;
     }
 
+    req.headers.userId = id
+
     next()
 }
 
