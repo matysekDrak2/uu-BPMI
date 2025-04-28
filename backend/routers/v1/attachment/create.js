@@ -5,14 +5,12 @@ const { v4: uuidv4 } = require('uuid');
 
 const Ajv = require('ajv');
 const ajv = new Ajv();
-const addFormats = require('ajv-formats');
-addFormats(ajv);
 
 // Define the schema
 const schema = {
     type: 'object',
     properties: {
-        id: { type: 'string', format: 'uuid' }
+        id: { type: 'string', minLength: 36, maxLength: 36 }
     },
     required: ['id'],
     additionalProperties: false
