@@ -18,5 +18,5 @@ module.exports = function getByTaskListId(taskListId) {
 
     const data = JSON.parse(fs.readFileSync(filePath, 'utf8'))
 
-    return data.filter(task => task.id === taskListId);
+    return data.filter(task => task.taskListId === taskListId);
 }

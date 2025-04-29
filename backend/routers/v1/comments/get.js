@@ -1,7 +1,7 @@
 const Ajv = require('ajv');
 const addFormats = require('ajv-formats');
 const getUserId = require('../../../dao/session/getUser');
-const getCommentsByTaskId = require('../../../dao/comment/get');
+const getCommentsById = require('../../../dao/comment/getById');
 const getTask = require('../../../dao/task/get');
 
 const ajv = new Ajv({ allErrors: true });
@@ -28,12 +28,11 @@ module.exports = function getComments(req, res) {
         return;
     }
 
-    const task = getTask(query.id);
+    const comment = getCommentsById(query.id);
+    if (!comment) return res.status(404).json({ error: 'Comment not found' }).send();
 
-    if (!task) {
-        res.status(404).json({ error: 'Task not found' }).send();
-        return;
-    }
+    const task = getTask(comment.taskId);
+    if (!task) return res.status(404).json({ error: 'Task not found' }).send();
 
     const taskList = getTaskList(task.taskListId);
 
@@ -46,6 +45,5 @@ module.exports = function getComments(req, res) {
         return;
     }
 
-    const comments = getCommentsByTaskId(query.id);
-    res.status(200).json(comments).send();
+    res.status(200).json(comment).send();
 }

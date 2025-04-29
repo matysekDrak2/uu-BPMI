@@ -1,7 +1,6 @@
 const Ajv = require('ajv');
 const ajv = new Ajv({ allErrors: true });
 const addFormats = require("ajv-formats")
-const getUserId = require("../../../dao/session/getUser");
 addFormats(ajv)
 
 const user_login_tmpl = {
@@ -18,7 +17,7 @@ const validator = ajv.compile(user_login_tmpl);
 
 function update(req, res) {
     const body = req.body;
-    const userId = getUserId(req.header('sessionKey'))
+    const userId = req.headers.userId
     if (!validator(body)){
         res.status(400).json(validator.errors).send()
         return

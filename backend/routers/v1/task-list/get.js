@@ -1,6 +1,7 @@
 const Ajv = require('ajv');
 const ajv = new Ajv({allErrors: true});
 const addFormats = require("ajv-formats")
+const daoGetAll = require("../../../dao/task/getAll");
 addFormats(ajv)
 
 const user_login_tmpl = {
@@ -20,8 +21,7 @@ function get(req, res) {
         res.status(400).json(validator.errors).send()
         return
     }
-    const getUserId = require("../../../dao/session/getUser");
-    const userId = getUserId(req.headers.sessionkey)
+    const userId = req.headers.userId
 
     const getTaskList = require("../../../dao/task-list/get");
     const taskList = getTaskList(param.listId);
@@ -32,7 +32,9 @@ function get(req, res) {
     }
 
     if (taskList.owner === userId || taskList.admins.includes(userId) || taskList.members.includes(userId)) {
-        res.status(200).json(taskList).send();
+        const daoGetAll = require("../../../dao/task/getAll");
+        const data = daoGetAll(param.listId);
+        res.status(200).json({...taskList, tasks: data}).send();
         return;
     }
     res.status(403).json({error: "You are not allowed to access this task list"}).send();

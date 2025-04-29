@@ -10,9 +10,9 @@ const ajv = new Ajv();
 const schema = {
     type: 'object',
     properties: {
-        id: { type: 'string', minLength: 36, maxLength: 36 }
+        commentId: { type: 'string', minLength: 36, maxLength: 36 }
     },
-    required: ['id'],
+    required: ['commentId'],
     additionalProperties: false
 };
 
@@ -21,15 +21,18 @@ const validate = ajv.compile(schema);
 function saveFile(req, res) {
     const form = new formidable.IncomingForm();
 
-    if(!validate(req.body)) {
+    if(!validate(req.query)) {
         return res.status(500).json(validate.errors);
     }
 
-    const {commentId} = req.body;
+    const {commentId} = req.query;
 
-    const getCommentById = require("../../../dao/comment/get");
+    const getCommentById = require("../../../dao/comment/getById");
     const comment = getCommentById(commentId);
 
+    if (!comment) {
+        return res.status(404).json({ error: 'Comment not found' });
+    }
 
     form.parse(req, (err, fields, files) => {
         if (err) {
@@ -37,15 +40,15 @@ function saveFile(req, res) {
             return;
         }
 
-        if (!files.file || files.file.length > 3 - comment.attachments.length){
-            res.status(400).json({ error: 'Invalid file count. Max of 3 files are allowed.' });
+        const currentFileCount = comment.attachments ? comment.attachments.length : 0;
+        if (!files.file || files.file.length > 3 - currentFileCount){
+            return res.status(400).json({ error: 'Invalid file count. Max of 3 files are allowed.' });
         }
 
         for (const file of files.file) {
             const stats = fs.statSync(file.filepath);
             if (stats.size > 2 * 1024 * 1024 * 1024) { // 2GB in bytes
-                res.status(400).json({ error: 'File size exceeds 2GB limit' });
-                return;
+                return res.status(400).json({ error: 'File size exceeds 2GB limit' });
             }
         }
 
@@ -55,10 +58,10 @@ function saveFile(req, res) {
             const newFileName = id + path.extname(file.originalFilename);
             const newPath = path.join(process.cwd(), 'data.tst', 'files', newFileName);
             fs.copyFileSync(file.filepath, newPath);
-            filesSaved.push({fileName: file.originalFilename, fileId: id})
+            filesSaved.push({fileName: file.originalFilename, fileId: id, fileType: path.extname(file.originalFilename)});
         }
 
-        comment.attachments = filesSaved.map(file => file.fileId);
+        comment.attachments = [...comment.attachments, ...filesSaved.map(file => file.fileId + file.fileType)];
 
         const updateComment = require("../../../dao/comment/update");
         updateComment(commentId, comment);

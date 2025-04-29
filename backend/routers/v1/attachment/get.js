@@ -8,9 +8,9 @@ const ajv = new Ajv();
 const schema = {
     type: 'object',
     properties: {
-        id: { type: 'string', minLength: 36, maxLength: 36 }
+        commentId: { type: 'string', minLength: 36, maxLength: 36 }
     },
-    required: ['id'],
+    required: ['commentId'],
     additionalProperties: false
 };
 const validate = ajv.compile(schema);
@@ -24,8 +24,8 @@ function getFileById(req, res) {
         return;
     }
 
-    const { id } = params;
-    const filePath = path.join(process.cwd(), 'data.tst', 'files', id);
+    const { commentId } = params;
+    const filePath = path.join(process.cwd(), 'data.tst', 'files', commentId);
 
     if (!fs.existsSync(filePath)) {
         res.status(404).json({ error: 'File not found' });
