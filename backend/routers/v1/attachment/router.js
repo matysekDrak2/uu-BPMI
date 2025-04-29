@@ -5,9 +5,9 @@ const auth = require('../session/auth');
 router.use(auth);
 
 
-const getFileById = require('./get');
+const getFileByName = require('./get');
 router.get('/', (req, res) => {
-    getFileById(req, res)
+    getFileByName(req, res)
 });
 
 const create = require('./create');

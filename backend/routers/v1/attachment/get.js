@@ -8,15 +8,15 @@ const ajv = new Ajv();
 const schema = {
     type: 'object',
     properties: {
-        commentId: { type: 'string', minLength: 36, maxLength: 36 }
+        fileName: { type: 'string', minLength: 36}
     },
-    required: ['commentId'],
+    required: ['fileName'],
     additionalProperties: false
 };
 const validate = ajv.compile(schema);
 
-function getFileById(req, res) {
-    const params = req.params;
+module.exports = function getFileByName(req, res) {
+    const params = req.query;
 
     const valid = validate(params);
     if (!valid) {
@@ -24,8 +24,8 @@ function getFileById(req, res) {
         return;
     }
 
-    const { commentId } = params;
-    const filePath = path.join(process.cwd(), 'data.tst', 'files', commentId);
+    const { fileName } = params;
+    const filePath = path.join(process.cwd(), 'data.tst', 'files', fileName);
 
     if (!fs.existsSync(filePath)) {
         res.status(404).json({ error: 'File not found' });
@@ -38,5 +38,3 @@ function getFileById(req, res) {
         }
     });
 }
-
-module.exports = getFileById;
