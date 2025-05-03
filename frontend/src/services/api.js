@@ -476,4 +476,59 @@ const userService = {
     }
 };
 
-export { authService, taskListService, taskService, commentService, userService }; 
+const attachmentService = {
+    uploadFile: async function (file, taskId) {
+        try {
+            const sessionId = sessionManager.getSessionId();
+
+            if (!sessionId) {
+                throw new Error('Uživatel není přihlášen');
+            }
+
+            // Create FormData to send the file
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await fetch(`${API_BASE_URL}/attachment?taskId=${taskId}`, {
+                method: 'POST',
+                headers: {
+                    'sessionkey': sessionId
+                },
+                body: formData
+            });
+
+            return await handleResponse(response, 'Nepodařilo se nahrát soubor');
+        } catch (error) {
+            console.error('Upload file error:', error);
+            throw error;
+        }
+    },
+
+    downloadFile: async function (fileName) {
+        try {
+            const sessionId = sessionManager.getSessionId();
+
+            if (!sessionId) {
+                throw new Error('Uživatel není přihlášen');
+            }
+
+            const response = await fetch(`${API_BASE_URL}/attachment?fileName=${fileName}`, {
+                method: 'GET',
+                headers: {
+                    'sessionkey': sessionId
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Nepodařilo se stáhnout soubor');
+            }
+
+            return response.blob();
+        } catch (error) {
+            console.error('Download file error:', error);
+            throw error;
+        }
+    }
+};
+
+export { authService, taskListService, taskService, commentService, userService, attachmentService }; 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { taskService, userService } from '../services/api';
+import { taskService, userService, attachmentService } from '../services/api';
 import TaskComments from './TaskComments';
 
 const TaskDetailModal = ({ isOpen, task, onClose }) => {
@@ -10,10 +10,18 @@ const TaskDetailModal = ({ isOpen, task, onClose }) => {
     const [error, setError] = useState(null);
     const [saving, setSaving] = useState(false);
     const [creatorName, setCreatorName] = useState('');
+    const [attachments, setAttachments] = useState([]);
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
         if (task && task.creator) {
             fetchCreatorName();
+        }
+
+        // Initialize attachments from task
+        if (task && task.attachments) {
+            setAttachments(task.attachments);
         }
     }, [task]);
 
@@ -99,6 +107,7 @@ const TaskDetailModal = ({ isOpen, task, onClose }) => {
     const cancelEditing = () => {
         setEditing(null);
         setEditValue('');
+        setSelectedFile(null);
     };
 
     const saveEdit = async () => {
@@ -141,6 +150,55 @@ const TaskDetailModal = ({ isOpen, task, onClose }) => {
         } catch (err) {
             setError(`Chyba při ukládání: ${err.message}`);
             setSaving(false);
+        }
+    };
+
+    const handleFileChange = (e) => {
+        if (e.target.files.length > 0) {
+            setSelectedFile(e.target.files[0]);
+        }
+    };
+
+    const uploadAttachment = async () => {
+        if (!selectedFile) return;
+
+        setUploading(true);
+        setError(null);
+
+        try {
+            const result = await attachmentService.uploadFile(selectedFile, task.id);
+            console.log('Upload result:', result);
+
+            // Update the task to reflect the new attachment
+            const updatedTask = await taskService.getTask(task.id);
+            if (updatedTask && updatedTask.attachments) {
+                setAttachments(updatedTask.attachments);
+            }
+
+            setUploading(false);
+            setSelectedFile(null);
+            setEditing(null);
+        } catch (err) {
+            setError(`Chyba při nahrávání souboru: ${err.message}`);
+            setUploading(false);
+        }
+    };
+
+    const downloadAttachment = async (fileName) => {
+        try {
+            const blob = await attachmentService.downloadFile(fileName);
+
+            // Create a download link and click it
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = fileName.split('/').pop();
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            setError(`Chyba při stahování souboru: ${err.message}`);
         }
     };
 
@@ -250,29 +308,54 @@ const TaskDetailModal = ({ isOpen, task, onClose }) => {
                         )}
                     </div>
 
-                    {/* Příloha ve stejném stylu jako Popis */}
+                    {/* Přílohy */}
                     <div className="task-detail-section">
-                        <h5>Příloha</h5>
+                        <h5>Přílohy</h5>
                         {editing === 'Příloha' ? (
                             <div className="edit-container">
                                 <input
-                                    type="text"
-                                    value={editValue}
-                                    onChange={(e) => setEditValue(e.target.value)}
+                                    type="file"
+                                    onChange={handleFileChange}
                                     className="edit-input"
                                 />
                                 <div className="edit-buttons">
-                                    <button onClick={saveEdit} disabled={saving}>Uložit</button>
+                                    <button
+                                        onClick={uploadAttachment}
+                                        disabled={uploading || !selectedFile}
+                                    >
+                                        {uploading ? 'Nahrávám...' : 'Nahrát'}
+                                    </button>
                                     <button onClick={cancelEditing}>Zrušit</button>
                                 </div>
                             </div>
                         ) : (
-                            <p
-                                className="clickable"
-                                onClick={() => startEditing('Příloha', taskData['Příloha'])}
-                            >
-                                {taskData['Příloha'] || 'Klikněte pro přidání přílohy'}
-                            </p>
+                            <div>
+                                {attachments && attachments.length > 0 ? (
+                                    <ul className="attachments-list">
+                                        {attachments.map((attachment, index) => (
+                                            <li key={index} className="attachment-item">
+                                                <span className="attachment-name">
+                                                    {attachment.split('/').pop()}
+                                                </span>
+                                                <button
+                                                    className="attachment-download-btn"
+                                                    onClick={() => downloadAttachment(attachment)}
+                                                >
+                                                    Stáhnout
+                                                </button>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <p className="no-attachments">Žádné přílohy</p>
+                                )}
+                                <button
+                                    className="add-attachment-btn"
+                                    onClick={() => setEditing('Příloha')}
+                                >
+                                    Přidat přílohu
+                                </button>
+                            </div>
                         )}
                     </div>
 

@@ -10,9 +10,13 @@ const ajv = new Ajv();
 const schema = {
     type: 'object',
     properties: {
-        commentId: { type: 'string', minLength: 36, maxLength: 36 }
+        commentId: { type: 'string', minLength: 36, maxLength: 36 },
+        taskId: { type: 'string', minLength: 36, maxLength: 36 }
     },
-    required: ['commentId'],
+    oneOf: [
+        { required: ['commentId'] },
+        { required: ['taskId'] }
+    ],
     additionalProperties: false
 };
 
@@ -21,17 +25,38 @@ const validate = ajv.compile(schema);
 function saveFile(req, res) {
     const form = new formidable.IncomingForm();
 
-    if(!validate(req.query)) {
+    if (!validate(req.query)) {
         return res.status(500).json(validate.errors);
     }
 
-    const {commentId} = req.query;
+    const { commentId, taskId } = req.query;
 
-    const getCommentById = require("../../../dao/comment/getById");
-    const comment = getCommentById(commentId);
+    let targetId, targetType, targetObject, updateFunction;
 
-    if (!comment) {
-        return res.status(404).json({ error: 'Comment not found' });
+    if (commentId) {
+        // Handle comment attachment
+        const getCommentById = require("../../../dao/comment/getById");
+        targetObject = getCommentById(commentId);
+        targetId = commentId;
+        targetType = 'comment';
+
+        if (!targetObject) {
+            return res.status(404).json({ error: 'Comment not found' });
+        }
+
+        updateFunction = require("../../../dao/comment/update");
+    } else if (taskId) {
+        // Handle task attachment
+        const getTaskById = require("../../../dao/task/get");
+        targetObject = getTaskById(taskId);
+        targetId = taskId;
+        targetType = 'task';
+
+        if (!targetObject) {
+            return res.status(404).json({ error: 'Task not found' });
+        }
+
+        updateFunction = require("../../../dao/task/update");
     }
 
     form.parse(req, (err, fields, files) => {
@@ -40,8 +65,8 @@ function saveFile(req, res) {
             return;
         }
 
-        const currentFileCount = comment.attachments ? comment.attachments.length : 0;
-        if (!files.file || files.file.length > 3 - currentFileCount){
+        const currentFileCount = targetObject.attachments ? targetObject.attachments.length : 0;
+        if (!files.file || files.file.length > 3 - currentFileCount) {
             return res.status(400).json({ error: 'Invalid file count. Max of 3 files are allowed.' });
         }
 
@@ -58,15 +83,25 @@ function saveFile(req, res) {
             const newFileName = id + path.extname(file.originalFilename);
             const newPath = path.join(process.cwd(), 'data.tst', 'files', newFileName);
             fs.copyFileSync(file.filepath, newPath);
-            filesSaved.push({fileName: file.originalFilename, fileId: id, fileType: path.extname(file.originalFilename)});
+            filesSaved.push({ fileName: file.originalFilename, fileId: id, fileType: path.extname(file.originalFilename) });
         }
 
-        comment.attachments = [...comment.attachments, ...filesSaved.map(file => file.fileId + file.fileType)];
+        // Initialize attachments array if it doesn't exist
+        if (!targetObject.attachments) {
+            targetObject.attachments = [];
+        }
 
-        const updateComment = require("../../../dao/comment/update");
-        updateComment(commentId, comment);
+        targetObject.attachments = [...targetObject.attachments, ...filesSaved.map(file => file.fileId + file.fileType)];
 
-        res.status(200).json({ message: 'File saved successfully', savedFiles: filesSaved});
+        // Update the task or comment
+        updateFunction(targetId, targetObject);
+
+        res.status(200).json({
+            message: 'File saved successfully',
+            savedFiles: filesSaved,
+            targetType: targetType,
+            targetId: targetId
+        });
     });
 }
 
