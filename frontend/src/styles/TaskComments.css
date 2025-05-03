@@ -153,3 +153,26 @@
 .attachment-download-btn:hover {
     background-color: #0069d9;
 }
+
+.attachment-link {
+    color: #007bff;
+    text-decoration: none;
+    font-size: 0.9rem;
+    display: inline-block;
+}
+
+.attachment-link:hover {
+    text-decoration: underline;
+    color: #0056b3;
+}
+
+.attachment-link-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.attachment-link-container span {
+    font-weight: normal;
+    color: #333;
+}

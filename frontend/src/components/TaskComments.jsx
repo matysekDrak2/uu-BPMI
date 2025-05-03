@@ -131,6 +131,88 @@ const TaskComments = ({ taskId }) => {
         }
     };
 
+    const renderComment = (comment) => {
+        const isAttachmentComment =
+            comment.text.startsWith('Příloha:') &&
+            comment.attachments &&
+            comment.attachments.length > 0;
+
+        if (isAttachmentComment) {
+            const filenameMatch = comment.text.match(/Příloha: (.*)/);
+            const displayFilename = filenameMatch ? filenameMatch[1] : 'Soubor';
+            const attachment = comment.attachments[0];
+
+            return (
+                <div key={comment.id} className="comment-item attachment-comment">
+                    <div className="comment-header">
+                        <span className="comment-author">
+                            {getUserName(comment.creator)}
+                        </span>
+                        <span className="comment-date">
+                            {formatDate(comment.createdAt)}
+                        </span>
+                    </div>
+                    <div className="comment-text attachment-link-container">
+                        <span>Příloha: </span>
+                        <a
+                            href="#"
+                            className="attachment-link"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                handleDownloadAttachment(attachment);
+                            }}
+                        >
+                            {displayFilename}
+                        </a>
+                    </div>
+                </div>
+            );
+        } else {
+            // Regular comment
+            return (
+                <div key={comment.id} className="comment-item">
+                    <div className="comment-header">
+                        <span className="comment-author">
+                            {getUserName(comment.creator)}
+                        </span>
+                        <span className="comment-date">
+                            {formatDate(comment.createdAt)}
+                        </span>
+                    </div>
+                    <div className="comment-text">
+                        {comment.text}
+                    </div>
+
+                    {/* Regular comment attachments if any */}
+                    {comment.attachments && comment.attachments.length > 0 && (
+                        <div className="comment-attachments">
+                            <h5>Přílohy:</h5>
+                            <ul className="attachments-list">
+                                {comment.attachments.map((attachment, index) => {
+                                    const fileName = attachment.split('/').pop();
+                                    return (
+                                        <li key={index} className="attachment-item">
+                                            <a
+                                                href="#"
+                                                className="attachment-link"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    handleDownloadAttachment(attachment);
+                                                }}
+                                            >
+                                                {fileName}
+                                            </a>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+    };
+
     return (
         <div className="task-comments-section">
             <h4>Komentáře</h4>
@@ -145,41 +227,7 @@ const TaskComments = ({ taskId }) => {
                         {comments.length === 0 ? (
                             <p className="no-comments">Zatím žádné komentáře</p>
                         ) : (
-                            comments.map(comment => (
-                                <div key={comment.id} className="comment-item">
-                                    <div className="comment-header">
-                                        <span className="comment-author">
-                                            {getUserName(comment.creator)}
-                                        </span>
-                                        <span className="comment-date">
-                                            {formatDate(comment.createdAt)}
-                                        </span>
-                                    </div>
-                                    <div className="comment-text">
-                                        {comment.text}
-                                    </div>
-                                    {comment.attachments && comment.attachments.length > 0 && (
-                                        <div className="comment-attachments">
-                                            <h5>Přílohy:</h5>
-                                            <ul className="attachments-list">
-                                                {comment.attachments.map((attachment, index) => (
-                                                    <li key={index} className="attachment-item">
-                                                        <span className="attachment-name">
-                                                            {attachment.split('/').pop()}
-                                                        </span>
-                                                        <button
-                                                            className="attachment-download-btn"
-                                                            onClick={() => handleDownloadAttachment(attachment)}
-                                                        >
-                                                            Stáhnout
-                                                        </button>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    )}
-                                </div>
-                            ))
+                            comments.map(renderComment)
                         )}
                     </div>
 
