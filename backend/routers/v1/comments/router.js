@@ -10,6 +10,12 @@ router.get("/", (req, res) => {
     getComments(req, res);
 });
 
+// Nový endpoint pro získání komentářů podle ID úkolu
+const getCommentsByTask = require("./getByTask");
+router.get("/byTask", (req, res) => {
+    getCommentsByTask(req, res);
+});
+
 const updateComment = require("./update");
 router.post("/", (req, res) => {
     updateComment(req, res);

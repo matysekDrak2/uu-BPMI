@@ -380,7 +380,8 @@ const commentService = {
                 throw new Error('Uživatel není přihlášen');
             }
 
-            const response = await fetch(`${API_BASE_URL}/comment?id=${taskId}`, {
+            // Použití nového endpointu pro získání komentářů podle ID úkolu
+            const response = await fetch(`${API_BASE_URL}/comment/byTask?taskId=${taskId}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
