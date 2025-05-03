@@ -1,6 +1,6 @@
 const path = require("node:path");
 const fs = require("node:fs");
-const formidable = require('formidable');
+const { formidable } = require('formidable');
 const { v4: uuidv4 } = require('uuid');
 
 const Ajv = require('ajv');
@@ -13,23 +13,25 @@ const schema = {
         commentId: { type: 'string', minLength: 36, maxLength: 36 },
         taskId: { type: 'string', minLength: 36, maxLength: 36 }
     },
-    oneOf: [
+    anyOf: [
         { required: ['commentId'] },
         { required: ['taskId'] }
     ],
-    additionalProperties: false
+    additionalProperties: true
 };
 
 const validate = ajv.compile(schema);
 
 function saveFile(req, res) {
-    const form = new formidable.IncomingForm();
+    console.log("Received attachment request with query:", req.query);
 
     if (!validate(req.query)) {
-        return res.status(500).json(validate.errors);
+        console.error("Validation errors:", validate.errors);
+        return res.status(400).json(validate.errors);
     }
 
     const { commentId, taskId } = req.query;
+    console.log("Processing request with commentId:", commentId, "taskId:", taskId);
 
     let targetId, targetType, targetObject, updateFunction;
 
@@ -59,36 +61,74 @@ function saveFile(req, res) {
         updateFunction = require("../../../dao/task/update");
     }
 
+    // Make sure the data.tst/files directory exists
+    const filesDir = path.join(process.cwd(), 'data.tst', 'files');
+    if (!fs.existsSync(filesDir)) {
+        fs.mkdirSync(filesDir, { recursive: true });
+    }
+
+    // Initialize new formidable (v3.x syntax)
+    const form = formidable({
+        multiples: true,
+        maxFileSize: 2 * 1024 * 1024 * 1024, // 2GB
+        uploadDir: filesDir,
+        keepExtensions: true
+    });
+
     form.parse(req, (err, fields, files) => {
         if (err) {
-            res.status(500).json({ error: 'Failed to parse form data' });
-            return;
+            console.error('Error parsing form:', err);
+            return res.status(500).json({ error: 'Failed to parse form data' });
         }
 
-        const currentFileCount = targetObject.attachments ? targetObject.attachments.length : 0;
-        if (!files.file || files.file.length > 3 - currentFileCount) {
-            return res.status(400).json({ error: 'Invalid file count. Max of 3 files are allowed.' });
-        }
-
-        for (const file of files.file) {
-            const stats = fs.statSync(file.filepath);
-            if (stats.size > 2 * 1024 * 1024 * 1024) { // 2GB in bytes
-                return res.status(400).json({ error: 'File size exceeds 2GB limit' });
-            }
-        }
-
-        let filesSaved = [];
-        for (const file of files.file) {
-            const id = uuidv4();
-            const newFileName = id + path.extname(file.originalFilename);
-            const newPath = path.join(process.cwd(), 'data.tst', 'files', newFileName);
-            fs.copyFileSync(file.filepath, newPath);
-            filesSaved.push({ fileName: file.originalFilename, fileId: id, fileType: path.extname(file.originalFilename) });
-        }
+        console.log("Parsed files:", files);
 
         // Initialize attachments array if it doesn't exist
         if (!targetObject.attachments) {
             targetObject.attachments = [];
+        }
+
+        const currentFileCount = targetObject.attachments.length;
+
+        // Handle files.file being an array or a single file
+        let uploadedFiles = [];
+        if (files.file) {
+            uploadedFiles = Array.isArray(files.file) ? files.file : [files.file];
+        }
+
+        console.log("uploadedFiles:", uploadedFiles.length);
+
+        if (!uploadedFiles || uploadedFiles.length === 0) {
+            return res.status(400).json({ error: 'No files uploaded' });
+        }
+
+        if (uploadedFiles.length > 3 - currentFileCount) {
+            return res.status(400).json({ error: 'Invalid file count. Max of 3 files are allowed.' });
+        }
+
+        let filesSaved = [];
+        for (const file of uploadedFiles) {
+            if (!file) continue;
+
+            const id = uuidv4();
+            const fileExtension = path.extname(file.originalFilename || '');
+            const newFileName = id + fileExtension;
+            const newPath = path.join(filesDir, newFileName);
+
+            try {
+                // Rename the temporary file to its final name
+                fs.renameSync(file.filepath, newPath);
+
+                filesSaved.push({
+                    fileName: file.originalFilename,
+                    fileId: id,
+                    fileType: fileExtension
+                });
+
+                console.log("Saved file:", newFileName);
+            } catch (fileErr) {
+                console.error("Error saving file:", fileErr);
+            }
         }
 
         targetObject.attachments = [...targetObject.attachments, ...filesSaved.map(file => file.fileId + file.fileType)];

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { taskService, userService, attachmentService } from '../services/api';
+import { taskService, userService, commentService, attachmentService } from '../services/api';
 import TaskComments from './TaskComments';
 
 const TaskDetailModal = ({ isOpen, task, onClose }) => {
@@ -10,18 +10,13 @@ const TaskDetailModal = ({ isOpen, task, onClose }) => {
     const [error, setError] = useState(null);
     const [saving, setSaving] = useState(false);
     const [creatorName, setCreatorName] = useState('');
-    const [attachments, setAttachments] = useState([]);
     const [selectedFile, setSelectedFile] = useState(null);
     const [uploading, setUploading] = useState(false);
+    const [showFileUpload, setShowFileUpload] = useState(false);
 
     useEffect(() => {
         if (task && task.creator) {
             fetchCreatorName();
-        }
-
-        // Initialize attachments from task
-        if (task && task.attachments) {
-            setAttachments(task.attachments);
         }
     }, [task]);
 
@@ -107,7 +102,6 @@ const TaskDetailModal = ({ isOpen, task, onClose }) => {
     const cancelEditing = () => {
         setEditing(null);
         setEditValue('');
-        setSelectedFile(null);
     };
 
     const saveEdit = async () => {
@@ -164,41 +158,41 @@ const TaskDetailModal = ({ isOpen, task, onClose }) => {
 
         setUploading(true);
         setError(null);
+        console.log('Starting file upload process with file:', selectedFile.name);
 
         try {
-            const result = await attachmentService.uploadFile(selectedFile, task.id);
+            // First, create a comment to attach the file to
+            const comment = await commentService.createComment(
+                task.id,
+                `Příloha: ${selectedFile.name}`
+            );
+
+            console.log('Created comment for attachment:', comment);
+
+            if (!comment || !comment.id) {
+                throw new Error('Nepodařilo se vytvořit komentář pro přílohu');
+            }
+
+            // Now upload the file to this comment
+            const result = await attachmentService.uploadFileToComment(selectedFile, comment.id);
             console.log('Upload result:', result);
 
-            // Update the task to reflect the new attachment
-            const updatedTask = await taskService.getTask(task.id);
-            if (updatedTask && updatedTask.attachments) {
-                setAttachments(updatedTask.attachments);
+            // Force reload of comments component
+            const commentComp = document.querySelector('.task-comments-section');
+            if (commentComp) {
+                commentComp.classList.add('reload-trigger');
+                setTimeout(() => {
+                    commentComp.classList.remove('reload-trigger');
+                }, 100);
             }
 
             setUploading(false);
             setSelectedFile(null);
-            setEditing(null);
+            setShowFileUpload(false);
         } catch (err) {
-            setError(`Chyba při nahrávání souboru: ${err.message}`);
+            console.error('Error handling attachment:', err);
+            setError(`Chyba při nahrávání přílohy: ${err.message}`);
             setUploading(false);
-        }
-    };
-
-    const downloadAttachment = async (fileName) => {
-        try {
-            const blob = await attachmentService.downloadFile(fileName);
-
-            // Create a download link and click it
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            a.download = fileName.split('/').pop();
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-        } catch (err) {
-            setError(`Chyba při stahování souboru: ${err.message}`);
         }
     };
 
@@ -308,63 +302,41 @@ const TaskDetailModal = ({ isOpen, task, onClose }) => {
                         )}
                     </div>
 
-                    {/* Přílohy */}
-                    <div className="task-detail-section">
-                        <h5>Přílohy</h5>
-                        {editing === 'Příloha' ? (
-                            <div className="edit-container">
-                                <input
-                                    type="file"
-                                    onChange={handleFileChange}
-                                    className="edit-input"
-                                />
-                                <div className="edit-buttons">
-                                    <button
-                                        onClick={uploadAttachment}
-                                        disabled={uploading || !selectedFile}
-                                    >
-                                        {uploading ? 'Nahrávám...' : 'Nahrát'}
-                                    </button>
-                                    <button onClick={cancelEditing}>Zrušit</button>
-                                </div>
-                            </div>
-                        ) : (
-                            <div>
-                                {attachments && attachments.length > 0 ? (
-                                    <ul className="attachments-list">
-                                        {attachments.map((attachment, index) => (
-                                            <li key={index} className="attachment-item">
-                                                <span className="attachment-name">
-                                                    {attachment.split('/').pop()}
-                                                </span>
-                                                <button
-                                                    className="attachment-download-btn"
-                                                    onClick={() => downloadAttachment(attachment)}
-                                                >
-                                                    Stáhnout
-                                                </button>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                ) : (
-                                    <p className="no-attachments">Žádné přílohy</p>
-                                )}
-                                <button
-                                    className="add-attachment-btn"
-                                    onClick={() => setEditing('Příloha')}
-                                >
-                                    Přidat přílohu
-                                </button>
-                            </div>
-                        )}
-                    </div>
-
                     {error && <div className="modal-error">{error}</div>}
                     {saving && <div className="loading-message">Ukládám změny...</div>}
                 </div>
 
                 {task && task.id && (
-                    <TaskComments taskId={task.id} />
+                    <>
+                        <div className="task-comments-header">
+                            <h4>Komentáře</h4>
+                            <button
+                                className="add-attachment-btn"
+                                onClick={() => setShowFileUpload(!showFileUpload)}
+                            >
+                                {showFileUpload ? 'Zrušit' : 'Přidat přílohu'}
+                            </button>
+                        </div>
+
+                        {showFileUpload && (
+                            <div className="file-upload-container">
+                                <input
+                                    type="file"
+                                    onChange={handleFileChange}
+                                    className="file-input"
+                                />
+                                <button
+                                    className="upload-btn"
+                                    onClick={uploadAttachment}
+                                    disabled={uploading || !selectedFile}
+                                >
+                                    {uploading ? 'Nahrávám...' : 'Nahrát přílohu'}
+                                </button>
+                            </div>
+                        )}
+
+                        <TaskComments taskId={task.id} />
+                    </>
                 )}
 
                 <div className="modal-buttons">

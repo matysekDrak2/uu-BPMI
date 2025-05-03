@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { commentService, userService } from '../services/api';
+import { commentService, userService, attachmentService } from '../services/api';
 import '../styles/TaskComments.css';
 
 const TaskComments = ({ taskId }) => {
@@ -13,6 +13,27 @@ const TaskComments = ({ taskId }) => {
     useEffect(() => {
         loadComments();
     }, [taskId]);
+
+    // Also reload comments when reload-trigger class is added
+    useEffect(() => {
+        const observer = new MutationObserver(mutations => {
+            mutations.forEach(mutation => {
+                if (mutation.target.classList.contains('reload-trigger')) {
+                    loadComments();
+                }
+            });
+        });
+
+        const commentsSection = document.querySelector('.task-comments-section');
+        if (commentsSection) {
+            observer.observe(commentsSection, {
+                attributes: true,
+                attributeFilter: ['class']
+            });
+        }
+
+        return () => observer.disconnect();
+    }, []);
 
     const loadComments = async () => {
         if (!taskId) return;
@@ -91,6 +112,25 @@ const TaskComments = ({ taskId }) => {
         return userNames[creatorId] || 'Uživatel';
     };
 
+    const handleDownloadAttachment = async (fileName) => {
+        try {
+            const blob = await attachmentService.downloadFile(fileName);
+
+            // Create a download link and click it
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = fileName.split('/').pop();
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error('Error downloading attachment:', err);
+            setError('Nepodařilo se stáhnout přílohu');
+        }
+    };
+
     return (
         <div className="task-comments-section">
             <h4>Komentáře</h4>
@@ -118,6 +158,26 @@ const TaskComments = ({ taskId }) => {
                                     <div className="comment-text">
                                         {comment.text}
                                     </div>
+                                    {comment.attachments && comment.attachments.length > 0 && (
+                                        <div className="comment-attachments">
+                                            <h5>Přílohy:</h5>
+                                            <ul className="attachments-list">
+                                                {comment.attachments.map((attachment, index) => (
+                                                    <li key={index} className="attachment-item">
+                                                        <span className="attachment-name">
+                                                            {attachment.split('/').pop()}
+                                                        </span>
+                                                        <button
+                                                            className="attachment-download-btn"
+                                                            onClick={() => handleDownloadAttachment(attachment)}
+                                                        >
+                                                            Stáhnout
+                                                        </button>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
                                 </div>
                             ))
                         )}
