@@ -112,7 +112,7 @@ const TaskComments = ({ taskId }) => {
         return userNames[creatorId] || 'Uživatel';
     };
 
-    const handleDownloadAttachment = async (fileName) => {
+    const handleDownloadAttachment = async (fileName, displayName) => {
         try {
             const blob = await attachmentService.downloadFile(fileName);
 
@@ -121,7 +121,10 @@ const TaskComments = ({ taskId }) => {
             const a = document.createElement('a');
             a.style.display = 'none';
             a.href = url;
-            a.download = fileName.split('/').pop();
+
+            // Použijeme zobrazované jméno souboru místo ID
+            a.download = displayName || fileName.split('/').pop();
+
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
@@ -159,7 +162,7 @@ const TaskComments = ({ taskId }) => {
                             className="attachment-link"
                             onClick={(e) => {
                                 e.preventDefault();
-                                handleDownloadAttachment(attachment);
+                                handleDownloadAttachment(attachment, displayFilename);
                             }}
                         >
                             {displayFilename}
@@ -189,7 +192,10 @@ const TaskComments = ({ taskId }) => {
                             <h5>Přílohy:</h5>
                             <ul className="attachments-list">
                                 {comment.attachments.map((attachment, index) => {
-                                    const fileName = attachment.split('/').pop();
+                                    // Pro běžné přílohy extrahujeme jméno z textu komentáře
+                                    const filenameMatch = comment.text.match(/Příloha: (.*)/);
+                                    const displayName = filenameMatch ? filenameMatch[1] : attachment.split('/').pop();
+
                                     return (
                                         <li key={index} className="attachment-item">
                                             <a
@@ -197,10 +203,10 @@ const TaskComments = ({ taskId }) => {
                                                 className="attachment-link"
                                                 onClick={(e) => {
                                                     e.preventDefault();
-                                                    handleDownloadAttachment(attachment);
+                                                    handleDownloadAttachment(attachment, displayName);
                                                 }}
                                             >
-                                                {fileName}
+                                                {displayName}
                                             </a>
                                         </li>
                                     );
