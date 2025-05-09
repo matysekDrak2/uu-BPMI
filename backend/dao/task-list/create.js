@@ -1,22 +1,28 @@
 const { v4: uuidv4 } = require('uuid');
+const fs = require("node:fs");
+const path = require("node:path");
 
-function create(name, ownerId) {
+module.exports = function create(name, ownerId) {
+    const filePath = path.join(process.cwd(), 'data.tst', 'task-list.json')
+    if (!fs.existsSync(filePath)) {
 
-    /** @type string */
-    const id = uuidv4();
+        fs.mkdir(path.dirname(filePath), { recursive: true }, (err) => {
+            if (err) throw err;
+        });
+        fs.writeFileSync(filePath, JSON.stringify([]))
+    }
+    const data = JSON.parse(fs.readFileSync(filePath, 'utf8'))
 
-    const data ={
-        id: id,
+    const newItem ={
+        id: uuidv4(),
         name: name,
         owner: ownerId,
         admins: [],
         members: []
     }
+    data.push(newItem)
 
-    const writeJSON = require("../dev-tools/writeJSON");
-    writeJSON( '/data.tst/task-lists/' + id, data)
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
 
-    return data
+    return newItem
 }
-
-module.exports = create;
