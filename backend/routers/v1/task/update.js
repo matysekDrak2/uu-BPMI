@@ -1,14 +1,13 @@
 const Ajv = require('ajv');
 const ajv = new Ajv({ allErrors: true });
 const addFormats = require("ajv-formats")
-const getUserId = require("../../../dao/session/getUser");
 addFormats(ajv)
 
 const user_login_tmpl = {
     type: 'object',
     properties: {
         id: { type: 'string', maxLength: 36, minLength: 36 },
-        text: { type: 'string', maxLength: 200 },
+        text: { type: 'string', maxLength: 1200 },
         state: { type: 'number' },
     },
     required: ['id'],
@@ -18,7 +17,7 @@ const validator = ajv.compile(user_login_tmpl);
 
 function update(req, res) {
     const body = req.body;
-    const userId = getUserId(req.header('sessionKey'))
+    const userId = req.headers.userId
     if (!validator(body)){
         res.status(400).json(validator.errors).send()
         return
@@ -56,9 +55,9 @@ function update(req, res) {
     daoDel(body.id);
 
     const daoCreate = require("../../../dao/task/create");
-    const data = daoCreate(toWrite.taskListId, toWrite.text, toWrite.state, userId);
+    daoCreate(toWrite);
 
-    res.status(200).json(data).send();
+    res.status(200).json(toWrite).send();
 }
 
 module.exports = update;

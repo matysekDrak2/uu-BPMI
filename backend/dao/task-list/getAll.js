@@ -1,18 +1,15 @@
-const fs = require('fs');
-const readJSON = require('../dev-tools/readJSON')
+const fs = require('node:fs');
+const path = require("node:path");
 
-function getAll(){
-    const path = '/data.tst/task-lists/'
-    const files = fs.readdirSync(process.cwd() + path);
+module.exports = function getAll(){
+    const filePath = path.join(process.cwd(), 'data.tst', 'tasks.json');
 
-    let data = [];
-
-    for (const file of files){
-        /** @ type {Object} */
-        const fileData = readJSON(path + file.substring( 0, file.indexOf( ".json" ) ))
-        data.push(fileData)
+    if (!fs.existsSync(filePath)) {
+        fs.mkdir(path.dirname(filePath), { recursive: true }, (err) => {
+            if (err) throw err;
+        });
+        fs.writeFileSync(filePath, JSON.stringify([]))
     }
-    return data;
-}
 
-module.exports = getAll;
+    return JSON.parse(fs.readFileSync(filePath, 'utf8'))
+}

@@ -1,7 +1,10 @@
 const fs = require('node:fs');
 const path = require('node:path');
-
-module.exports = function getUpdateByCommentId(id, comment) {
+/**
+ * @param {uuidv4} id
+ * @returns {Object | Undefined} comment
+ * */
+module.exports = function getCommentsById(id) {
     const filePath = path.join(process.cwd(), 'data.tst', 'comments.json');
 
     if (!fs.existsSync(filePath)) {
@@ -9,25 +12,11 @@ module.exports = function getUpdateByCommentId(id, comment) {
             if (err) throw err;
         });
         fs.writeFileSync(filePath, JSON.stringify([]))
-        return {};
+        return undefined;
     }
 
     const data = fs.readFileSync(filePath, 'utf8');
     const comments = JSON.parse(data);
 
-    const index = comments.findIndex(comment => comment.id === id);
-
-    if (index === -1) {
-
-        return null;
-    }
-
-    comments[index] =  {
-        ...comments[index],
-        ...comment
-    };
-
-    fs.writeFileSync(filePath, JSON.stringify(comments, null, 2), 'utf8');
-
-    return comments[index];
+    return comments.find(comment => comment.id === id);
 }

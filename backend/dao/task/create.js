@@ -1,19 +1,18 @@
-const { v4: uuidv4 } = require('uuid');
-const JsonWrite = require("../dev-tools/writeJSON");
+const path = require("node:path");
+const fs = require("node:fs");
 
-function create(taskListId, text, state, userId) {
-    /** @type string */
-    const id = uuidv4();
+module.exports = function create(task) {
+    const filePath = path.join(process.cwd(), 'data.tst', 'tasks.json');
 
-    const data = {
-        id: id,
-        taskListId: taskListId,
-        text: text,
-        state: state,
-        creatorId: userId
+    if (!fs.existsSync(filePath)) {
+        fs.mkdir(path.dirname(filePath), { recursive: true }, (err) => {
+            if (err) throw err;
+        });
+        fs.writeFileSync(filePath, JSON.stringify([]))
     }
-    JsonWrite("/data.tst/tasks/" + id, data)
-    return data;
-}
 
-module.exports = create;
+    const data = JSON.parse(fs.readFileSync(filePath, 'utf8'))
+    data.push(task)
+
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
+}

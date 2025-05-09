@@ -1,7 +1,10 @@
-const fs = require('fs');
-const path = require('path');
-
-module.exports = function getCommentsByTaskId(id) {
+const fs = require('node:fs');
+const path = require('node:path');
+/**
+ * @param {uuidv4} taskId
+ * @returns {Array<Object> | Undefined} comment
+ * */
+module.exports = function getCommentsByTaskId(taskId) {
     const filePath = path.join(process.cwd(), 'data.tst', 'comments.json');
 
     if (!fs.existsSync(filePath)) {
@@ -9,11 +12,11 @@ module.exports = function getCommentsByTaskId(id) {
             if (err) throw err;
         });
         fs.writeFileSync(filePath, JSON.stringify([]))
-        return [];
+        return undefined;
     }
 
     const data = fs.readFileSync(filePath, 'utf8');
     const comments = JSON.parse(data);
 
-    return comments.filter(comment => comment.task === id);
+    return comments.filter(comment => comment.taskId === taskId);
 }

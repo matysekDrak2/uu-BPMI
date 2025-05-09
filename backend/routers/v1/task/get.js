@@ -1,7 +1,6 @@
 const Ajv = require('ajv');
 const ajv = new Ajv({allErrors: true});
 const addFormats = require("ajv-formats")
-const getUserId = require("../../../dao/session/getUser");
 addFormats(ajv)
 
 const user_login_tmpl = {
@@ -14,9 +13,9 @@ const user_login_tmpl = {
 }
 const validator = ajv.compile(user_login_tmpl);
 
-function create(req, res) {
+module.exports = function get(req, res) {
     const body = req.query;
-    const userId = getUserId(req.headers.sessionkey)
+    const userId = req.headers.userId
     if (!validator(body)){
         res.status(400).json(validator.errors).send()
         return
@@ -37,9 +36,8 @@ function create(req, res) {
         return
     }
 
+    const getComments = require("../../../dao/comment/get");
+    const comments = getComments(body.id);
 
-
-    res.status(200).json(data).send();
+    res.status(200).json({...data, comments: comments}).send();
 }
-
-module.exports = create;

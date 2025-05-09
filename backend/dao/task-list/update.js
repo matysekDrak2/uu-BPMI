@@ -1,12 +1,7 @@
+const fs = require('node:fs');
 const path = require("node:path");
-const fs = require("node:fs");
 
-/**
- * @param taskListId {string} 36 character string UUID
- * @returns {Array<Object>}
- * */
-module.exports = function getByTaskListId(taskListId) {
-
+module.exports = function update(id, newData) {
     const filePath = path.join(process.cwd(), 'data.tst', 'tasks.json');
 
     if (!fs.existsSync(filePath)) {
@@ -18,5 +13,13 @@ module.exports = function getByTaskListId(taskListId) {
 
     const data = JSON.parse(fs.readFileSync(filePath, 'utf8'))
 
-    return data.filter(task => task.taskListId === taskListId);
+    const index = data.findIndex(item => item.id === id);
+    if (index === -1) {
+        throw new Error('Item not found');
+    }
+    data[index] = { ...data[index], ...newData };
+
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
+
+    return data[index];
 }
