@@ -305,6 +305,8 @@
 /* Task Detail Modal styles */
 .task-detail-modal {
     max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
 }
 
 .task-detail-content {
@@ -474,4 +476,119 @@
     background-color: #bbdefb;
     border-color: #bbdefb;
     cursor: not-allowed;
+}
+
+/* Styly pro přílohy */
+.attachments-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 15px 0;
+}
+
+.attachment-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+    margin-bottom: 8px;
+}
+
+.attachment-name {
+    font-size: 14px;
+    color: #555;
+    word-break: break-all;
+}
+
+.attachment-download-btn {
+    background-color: #2196f3;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-left: 10px;
+    white-space: nowrap;
+}
+
+.attachment-download-btn:hover {
+    background-color: #1976d2;
+}
+
+.no-attachments {
+    color: #999;
+    font-style: italic;
+    margin-bottom: 15px;
+}
+
+.add-attachment-btn {
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    color: #333;
+    border-radius: 4px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.add-attachment-btn:hover {
+    background-color: #e0e0e0;
+}
+
+/* File Upload UI */
+.task-comments-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    border-top: 1px solid #eee;
+    padding-top: 15px;
+}
+
+.task-comments-header h4 {
+    margin: 0;
+}
+
+.file-upload-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    align-items: center;
+}
+
+.file-input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+}
+
+.upload-btn {
+    background-color: #2196f3;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.upload-btn:hover {
+    background-color: #1976d2;
+}
+
+.upload-btn:disabled {
+    background-color: #bbdefb;
+    cursor: not-allowed;
+}
+
+/* Hide h4 in comments section since we're now showing it in the header */
+.task-comments-section h4 {
+    display: none;
 }

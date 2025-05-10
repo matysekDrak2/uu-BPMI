@@ -204,7 +204,7 @@ const taskListService = {
             }
 
             const response = await fetch(`${API_BASE_URL}/taskList`, {
-                method: 'POST',
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'sessionkey': sessionId
@@ -380,7 +380,8 @@ const commentService = {
                 throw new Error('Uživatel není přihlášen');
             }
 
-            const response = await fetch(`${API_BASE_URL}/comment?id=${taskId}`, {
+            // Použití nového endpointu pro získání komentářů podle ID úkolu
+            const response = await fetch(`${API_BASE_URL}/comment/byTask?taskId=${taskId}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -475,4 +476,112 @@ const userService = {
     }
 };
 
-export { authService, taskListService, taskService, commentService, userService }; 
+const attachmentService = {
+    uploadFile: async function (file, taskId) {
+        try {
+            const sessionId = sessionManager.getSessionId();
+
+            if (!sessionId) {
+                throw new Error('Uživatel není přihlášen');
+            }
+
+            // Create FormData to send the file
+            const formData = new FormData();
+            formData.append('file', file);
+
+            console.log('Uploading file:', file.name, 'for task:', taskId);
+
+            // Build URL with taskId parameter
+            const url = `${API_BASE_URL}/attachment?taskId=${taskId}`;
+            console.log('Upload URL:', url);
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'sessionkey': sessionId
+                    // Note: Don't set Content-Type header with FormData
+                },
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errText = await response.text();
+                console.error('Server error response:', errText);
+                throw new Error('Nepodařilo se nahrát soubor');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Upload file error:', error);
+            throw error;
+        }
+    },
+
+    uploadFileToComment: async function (file, commentId) {
+        try {
+            const sessionId = sessionManager.getSessionId();
+
+            if (!sessionId) {
+                throw new Error('Uživatel není přihlášen');
+            }
+
+            // Create FormData to send the file
+            const formData = new FormData();
+            formData.append('file', file);
+
+            console.log('Uploading file:', file.name, 'for comment:', commentId);
+
+            // Build URL with commentId parameter
+            const url = `${API_BASE_URL}/attachment?commentId=${commentId}`;
+            console.log('Upload URL:', url);
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'sessionkey': sessionId
+                    // Note: Don't set Content-Type header with FormData
+                },
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errText = await response.text();
+                console.error('Server error response:', errText);
+                throw new Error('Nepodařilo se nahrát soubor ke komentáři');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Upload file to comment error:', error);
+            throw error;
+        }
+    },
+
+    downloadFile: async function (fileName) {
+        try {
+            const sessionId = sessionManager.getSessionId();
+
+            if (!sessionId) {
+                throw new Error('Uživatel není přihlášen');
+            }
+
+            const response = await fetch(`${API_BASE_URL}/attachment?fileName=${fileName}`, {
+                method: 'GET',
+                headers: {
+                    'sessionkey': sessionId
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Nepodařilo se stáhnout soubor');
+            }
+
+            return response.blob();
+        } catch (error) {
+            console.error('Download file error:', error);
+            throw error;
+        }
+    }
+};
+
+export { authService, taskListService, taskService, commentService, userService, attachmentService }; 

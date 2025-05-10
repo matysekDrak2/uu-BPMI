@@ -102,3 +102,77 @@
     background-color: #f8d7da;
     color: #721c24;
 }
+
+/* Attachment styles */
+.comment-attachments {
+    margin-top: 10px;
+    padding-top: 5px;
+    border-top: 1px dashed #e0e0e0;
+}
+
+.comment-attachments h5 {
+    font-size: 0.85rem;
+    margin: 0 0 5px 0;
+    color: #555;
+}
+
+.attachments-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.attachment-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 8px;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+    margin-bottom: 5px;
+    font-size: 0.85rem;
+}
+
+.attachment-name {
+    color: #333;
+    word-break: break-all;
+}
+
+.attachment-download-btn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 2px 6px;
+    margin-left: 10px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    white-space: nowrap;
+}
+
+.attachment-download-btn:hover {
+    background-color: #0069d9;
+}
+
+.attachment-link {
+    color: #007bff;
+    text-decoration: none;
+    font-size: 0.9rem;
+    display: inline-block;
+}
+
+.attachment-link:hover {
+    text-decoration: underline;
+    color: #0056b3;
+}
+
+.attachment-link-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.attachment-link-container span {
+    font-weight: normal;
+    color: #333;
+}
