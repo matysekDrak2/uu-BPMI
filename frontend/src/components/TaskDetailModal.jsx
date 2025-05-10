@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { taskService, userService } from '../services/api';
+import { taskService, userService, commentService, attachmentService } from '../services/api';
 import TaskComments from './TaskComments';
 
 const TaskDetailModal = ({ isOpen, task, onClose }) => {
@@ -10,6 +10,9 @@ const TaskDetailModal = ({ isOpen, task, onClose }) => {
     const [error, setError] = useState(null);
     const [saving, setSaving] = useState(false);
     const [creatorName, setCreatorName] = useState('');
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [uploading, setUploading] = useState(false);
+    const [showFileUpload, setShowFileUpload] = useState(false);
 
     useEffect(() => {
         if (task && task.creator) {
@@ -144,6 +147,55 @@ const TaskDetailModal = ({ isOpen, task, onClose }) => {
         }
     };
 
+    const handleFileChange = (e) => {
+        if (e.target.files.length > 0) {
+            setSelectedFile(e.target.files[0]);
+        }
+    };
+
+    const uploadAttachment = async () => {
+        if (!selectedFile) return;
+
+        setUploading(true);
+        setError(null);
+        console.log('Starting file upload process with file:', selectedFile.name);
+
+        try {
+            // First, create a comment to attach the file to
+            const comment = await commentService.createComment(
+                task.id,
+                `Příloha: ${selectedFile.name}`
+            );
+
+            console.log('Created comment for attachment:', comment);
+
+            if (!comment || !comment.id) {
+                throw new Error('Nepodařilo se vytvořit komentář pro přílohu');
+            }
+
+            // Now upload the file to this comment
+            const result = await attachmentService.uploadFileToComment(selectedFile, comment.id);
+            console.log('Upload result:', result);
+
+            // Force reload of comments component
+            const commentComp = document.querySelector('.task-comments-section');
+            if (commentComp) {
+                commentComp.classList.add('reload-trigger');
+                setTimeout(() => {
+                    commentComp.classList.remove('reload-trigger');
+                }, 100);
+            }
+
+            setUploading(false);
+            setSelectedFile(null);
+            setShowFileUpload(false);
+        } catch (err) {
+            console.error('Error handling attachment:', err);
+            setError(`Chyba při nahrávání přílohy: ${err.message}`);
+            setUploading(false);
+        }
+    };
+
     return (
         <div className="modal-overlay">
             <div className="modal task-detail-modal">
@@ -250,38 +302,41 @@ const TaskDetailModal = ({ isOpen, task, onClose }) => {
                         )}
                     </div>
 
-                    {/* Příloha ve stejném stylu jako Popis */}
-                    <div className="task-detail-section">
-                        <h5>Příloha</h5>
-                        {editing === 'Příloha' ? (
-                            <div className="edit-container">
-                                <input
-                                    type="text"
-                                    value={editValue}
-                                    onChange={(e) => setEditValue(e.target.value)}
-                                    className="edit-input"
-                                />
-                                <div className="edit-buttons">
-                                    <button onClick={saveEdit} disabled={saving}>Uložit</button>
-                                    <button onClick={cancelEditing}>Zrušit</button>
-                                </div>
-                            </div>
-                        ) : (
-                            <p
-                                className="clickable"
-                                onClick={() => startEditing('Příloha', taskData['Příloha'])}
-                            >
-                                {taskData['Příloha'] || 'Klikněte pro přidání přílohy'}
-                            </p>
-                        )}
-                    </div>
-
                     {error && <div className="modal-error">{error}</div>}
                     {saving && <div className="loading-message">Ukládám změny...</div>}
                 </div>
 
                 {task && task.id && (
-                    <TaskComments taskId={task.id} />
+                    <>
+                        <div className="task-comments-header">
+                            <h4>Komentáře</h4>
+                            <button
+                                className="add-attachment-btn"
+                                onClick={() => setShowFileUpload(!showFileUpload)}
+                            >
+                                {showFileUpload ? 'Zrušit' : 'Přidat přílohu'}
+                            </button>
+                        </div>
+
+                        {showFileUpload && (
+                            <div className="file-upload-container">
+                                <input
+                                    type="file"
+                                    onChange={handleFileChange}
+                                    className="file-input"
+                                />
+                                <button
+                                    className="upload-btn"
+                                    onClick={uploadAttachment}
+                                    disabled={uploading || !selectedFile}
+                                >
+                                    {uploading ? 'Nahrávám...' : 'Nahrát přílohu'}
+                                </button>
+                            </div>
+                        )}
+
+                        <TaskComments taskId={task.id} />
+                    </>
                 )}
 
                 <div className="modal-buttons">

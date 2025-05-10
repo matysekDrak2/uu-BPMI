@@ -21,7 +21,7 @@ const validate = ajv.compile(schema);
 function saveFile(req, res) {
     const form = new formidable.IncomingForm();
 
-    if(!validate(req.query)) {
+    if(!validate(req.query)){
         return res.status(500).json(validate.errors);
     }
 
@@ -61,6 +61,9 @@ function saveFile(req, res) {
             filesSaved.push({fileName: file.originalFilename, fileId: id, fileType: path.extname(file.originalFilename)});
         }
 
+        if (!comment.attachments) {
+            comment.attachments = [];
+        }
         comment.attachments = [...comment.attachments, ...filesSaved.map(file => file.fileId + file.fileType)];
 
         const updateComment = require("../../../dao/comment/update");
