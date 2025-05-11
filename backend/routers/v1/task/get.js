@@ -32,7 +32,7 @@ module.exports = function get(req, res) {
         !taskList.admins.includes(userId) &&
         !taskList.members.includes(userId)
     ){
-        res.status(403).send("Not authorized in this task list")
+        res.status(403).json({error: "Not authorized in this task list"}).send()
         return
     }
 
