@@ -23,7 +23,7 @@ module.exports = function create(req, res) {
     const userId = getUserId(req.headers.sessionkey)
 
     if (!validateComment(comment)) {
-        res.status(400).json({ errors: validateComment.errors }).send();
+        res.status(400).json({ error: validateComment.errors }).send();
         return;
     }
 
@@ -37,13 +37,13 @@ module.exports = function create(req, res) {
         !taskList.admins.includes(userId) &&
         !taskList.members.includes(userId)
     ){
-        res.status(403).send("Not authorized in this task list")
+        res.status(403).json({error: "Not authorized in this task list"}).send()
         return
     }
 
     comment.creator = userId;
     comment.id = uuidv4();
 
-    const newComment = createComment(comment);
-    res.status(201).json(newComment).send();
+    createComment(comment);
+    res.status(201).json(comment).send();
 };
