@@ -36,7 +36,7 @@ module.exports = function updateTaskListIfAuthorized(req, res) {
         return res.status(404).json({ error: 'Task list not found' });
     }
 
-    if (taskList.owner !== userId && !taskList.admins.contains(userId)) {
+    if (taskList.owner !== userId && (!taskList.admins.includes(userId))) {
         return res.status(403).json({ error: 'Unauthorized: You must be the owner or an admin to update this task list' });
     }
 
