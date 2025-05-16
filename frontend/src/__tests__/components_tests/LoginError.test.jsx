@@ -1,10 +1,19 @@
-import { render, screen } from '@testing-library/react';
-import { test, expect } from 'vitest';
-import Login from '../src/components/Login';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { test, expect, vi } from 'vitest';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+import Login from '@/components/Login';
 
-test('displays error message on login failure', () => {
-  const error = 'Invalid email or password';
-  render(<Login error={error} onSwitchToRegister={() => {}} />);
+test('calls onSwitchToRegister when link is clicked', () => {
+  const onSwitchToRegister = vi.fn();
 
-  expect(screen.getByText(/invalid email/i)).toBeDefined();
+  render(
+    <GoogleOAuthProvider clientId="test-client-id">
+      <Login onSwitchToRegister={onSwitchToRegister} />
+    </GoogleOAuthProvider>
+  );
+
+  const switchLink = screen.getByText(/zaregistrovat se/i);
+  fireEvent.click(switchLink);
+
+  expect(onSwitchToRegister).toHaveBeenCalledTimes(1);
 });

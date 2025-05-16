@@ -1,17 +1,49 @@
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { test, expect, vi } from 'vitest';
-import CreateTaskModal from '../src/components/CreateTaskModal';
+import TaskList from '@/components/TaskList';
+
+// Mockuj taskService
+vi.mock('@/services/api', () => ({
+  taskService: {
+    createTask: vi.fn(() =>
+      Promise.resolve({
+        id: 123,
+        text: 'Název: Můj nový úkol\nPriorita: normal\nPopis: Testovací popis',
+        state: 0
+      })
+    ),
+    getTasksByListId: vi.fn(() =>
+      Promise.resolve({
+        open: [{
+          id: 123,
+          text: 'Název: Můj nový úkol\nPriorita: normal\nPopis: Testovací popis',
+          state: 0
+        }],
+        inProgress: [],
+        completed: []
+      })
+    )
+  }
+}));
 
 test('user creates new task successfully', async () => {
-  const onCreate = vi.fn();
-  render(<CreateTaskModal onCreate={onCreate} />);
+  const taskList = { id: 1, name: 'Test List' };
 
-  const input = screen.getByPlaceholderText(/task title/i);
-  const button = screen.getByRole('button', { name: /create/i });
+  render(<TaskList isVisible={true} taskList={taskList} />);
 
-  await userEvent.type(input, 'Finish test suite');
-  await userEvent.click(button);
+  // Klik na "Vytvořit úkol"
+  const createButton = screen.getByRole('button', { name: /vytvořit úkol/i });
+  fireEvent.click(createButton);
 
-  expect(onCreate).toHaveBeenCalledWith(expect.objectContaining({ title: 'Finish test suite' }));
+  // Vyplnění pole názvu
+  const titleInput = await screen.findByPlaceholderText(/zadejte název úkolu/i);
+  fireEvent.change(titleInput, { target: { value: 'Můj nový úkol' } });
+
+  // Potvrzení formuláře
+  const confirmButton = screen.getByRole('button', { name: /potvrdit/i });
+  fireEvent.click(confirmButton);
+
+  // Ověření, že úkol byl zobrazen ve sloupci "Otevřené"
+  const taskTitle = await screen.findByRole('heading', { name: /můj nový úkol/i });
+  expect(taskTitle).toBeInTheDocument();
 });

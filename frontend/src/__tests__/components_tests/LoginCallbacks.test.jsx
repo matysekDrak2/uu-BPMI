@@ -1,12 +1,18 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { test, expect, vi } from 'vitest';
-import Login from '../src/components/Login';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+import Login from '@/components/Login';
 
 test('calls onSwitchToRegister when link is clicked', () => {
   const onSwitchToRegister = vi.fn();
-  render(<Login onSwitchToRegister={onSwitchToRegister} />);
-  
-  const switchLink = screen.getByRole('button', { name: /register/i });
+
+  render(
+    <GoogleOAuthProvider clientId="test-client-id">
+      <Login onSwitchToRegister={onSwitchToRegister} />
+    </GoogleOAuthProvider>
+  );
+
+  const switchLink = screen.getByText(/zaregistrovat se/i);
   fireEvent.click(switchLink);
 
   expect(onSwitchToRegister).toHaveBeenCalledTimes(1);

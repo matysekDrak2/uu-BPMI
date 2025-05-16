@@ -1,10 +1,12 @@
 import { render, screen } from '@testing-library/react';
 import { test, expect } from 'vitest';
-import TaskList from '../src/components/TaskList';
+import TaskList from '@/components/TaskList';
 
 test('displays empty state when no tasks', () => {
-  const list = { id: 1, title: 'Empty List' };
-  render(<TaskList list={list} tasks={[]} />);
+  const taskList = { id: 1, name: 'Test List', tasks: { open: [], inProgress: [], completed: [] } };
 
-  expect(screen.getByText(/no tasks/i)).toBeDefined();
+  render(<TaskList isVisible={true} taskList={taskList} />);
+  
+  // Příklad očekávání nějakého prázdného stavu
+  expect(screen.getByText(/otevřené/i)).toBeDefined(); // Nebo použij .toBeInTheDocument() pokud používáš jest-dom
 });

@@ -1,8 +1,8 @@
-import { render, screen } from '@testing-library/react';
-import { test, expect } from 'vitest';
-import Dashboard from '../src/components/Dashboard';
+import { render, screen } from "@testing-library/react";
+import { test, expect } from "vitest";
+import Dashboard from "@/components/Dashboard";
 
-test('renders dashboard heading', () => {
+test("renders dashboard component", () => {
   render(<Dashboard />);
-  expect(screen.getByText(/dashboard/i)).toBeDefined();
+  expect(screen.getByText(/\+ nový seznam úkolů/i)).toBeInTheDocument();
 });

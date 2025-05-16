@@ -1,15 +1,43 @@
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { test, expect, vi } from 'vitest';
-import Login from '../src/components/Login';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+import Login from '@/components/Login';
+import { authService } from '@/services/api';
+
+// Mockuj přihlášení
+vi.mock('@/services/api', () => ({
+  authService: {
+    login: vi.fn().mockResolvedValue({}),
+    googleAuth: vi.fn()
+  }
+}));
+
+// mock window.switchToDashboard
+vi.stubGlobal('window', Object.create(window));
+window.switchToDashboard = vi.fn();
 
 test('user logs in with email and password', async () => {
-  const mockLogin = vi.fn();
-  render(<Login onLogin={mockLogin} onSwitchToRegister={() => {}} />);
+  render(
+    <GoogleOAuthProvider clientId="test-client-id">
+      <Login onSwitchToRegister={() => {}} />
+    </GoogleOAuthProvider>
+  );
 
-  await userEvent.type(screen.getByLabelText(/email/i), 'test@example.com');
-  await userEvent.type(screen.getByLabelText(/password/i), '123456');
-  await userEvent.click(screen.getByRole('button', { name: /login/i }));
+  // Zadej email a heslo
+  fireEvent.change(screen.getByPlaceholderText(/zadejte email/i), {
+    target: { value: 'test@example.com' }
+  });
 
-  expect(mockLogin).toHaveBeenCalledWith('test@example.com', '123456');
+  fireEvent.change(screen.getByPlaceholderText(/zadejte heslo/i), {
+    target: { value: 'password123' }
+  });
+
+  // Klikni na tlačítko
+  fireEvent.click(screen.getByRole('button', { name: /přihlásit se/i }));
+
+  // Počkej na přesměrování
+  await waitFor(() => {
+    expect(authService.login).toHaveBeenCalledWith('test@example.com', 'password123');
+    expect(window.switchToDashboard).toHaveBeenCalled();
+  });
 });

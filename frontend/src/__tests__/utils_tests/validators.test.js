@@ -1,5 +1,5 @@
 import { test, expect } from 'vitest';
-import { validateEmail } from '../src/utils/validators';
+import { validateEmail } from '@/utils/validators';
 
 test('validates correct email', () => {
   expect(validateEmail('test@example.com')).toBe(true);

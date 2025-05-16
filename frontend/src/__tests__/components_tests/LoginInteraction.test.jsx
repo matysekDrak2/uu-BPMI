@@ -1,16 +1,21 @@
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { test, expect } from 'vitest';
-import Login from '../src/components/Login';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+import Login from '@/components/Login';
 
-test('allows typing into email and password fields', async () => {
-  render(<Login onSwitchToRegister={() => {}} />);
-  const emailInput = screen.getByLabelText(/email/i);
-  const passwordInput = screen.getByLabelText(/password/i);
+test('allows typing into email and password fields', () => {
+  render(
+    <GoogleOAuthProvider clientId="test-client-id">
+      <Login onSwitchToRegister={() => {}} />
+    </GoogleOAuthProvider>
+  );
 
-  await userEvent.type(emailInput, 'test@example.com');
-  await userEvent.type(passwordInput, 'password123');
+  const emailInput = screen.getByPlaceholderText(/zadejte email/i);
+  const passwordInput = screen.getByPlaceholderText(/zadejte heslo/i);
+
+  fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
+  fireEvent.change(passwordInput, { target: { value: 'secret123' } });
 
   expect(emailInput.value).toBe('test@example.com');
-  expect(passwordInput.value).toBe('password123');
+  expect(passwordInput.value).toBe('secret123');
 });

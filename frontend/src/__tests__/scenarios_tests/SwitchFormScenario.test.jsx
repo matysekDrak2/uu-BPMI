@@ -1,13 +1,33 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import { test, expect, vi } from 'vitest';
-import Login from '../src/components/Login';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+import Login from '@/components/Login';
+import Register from '@/components/Register';
 
-test('user switches to register form', () => {
-  const switchFn = vi.fn();
-  render(<Login onSwitchToRegister={switchFn} />);
+const wrapper = (ui) => (
+  <GoogleOAuthProvider clientId="test-client-id">
+    {ui}
+  </GoogleOAuthProvider>
+);
 
-  const switchButton = screen.getByRole('button', { name: /register/i });
-  fireEvent.click(switchButton);
+test('user switches from login to register form', () => {
+  const onSwitchToRegister = vi.fn();
+  render(wrapper(<Login onSwitchToRegister={onSwitchToRegister} />));
 
-  expect(switchFn).toHaveBeenCalled();
+  const prompt = screen.getByText(/nemáte účet/i).closest('.switch-prompt');
+  const link = within(prompt).getByText(/zaregistrovat se/i);
+  fireEvent.click(link);
+
+  expect(onSwitchToRegister).toHaveBeenCalled();
+});
+
+test('user switches from register to login form', () => {
+  const onSwitchToLogin = vi.fn();
+  render(wrapper(<Register onSwitchToLogin={onSwitchToLogin} />));
+
+  const prompt = screen.getByText(/již máte účet/i).closest('.switch-prompt');
+  const link = within(prompt).getByText(/přihlásit se/i);
+  fireEvent.click(link);
+
+  expect(onSwitchToLogin).toHaveBeenCalled();
 });

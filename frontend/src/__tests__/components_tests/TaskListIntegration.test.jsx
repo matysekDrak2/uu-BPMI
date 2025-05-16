@@ -1,16 +1,39 @@
-import { render, screen } from '@testing-library/react';
-import { test, expect } from 'vitest';
-import TaskList from '../src/components/TaskList';
+import { render, screen, waitFor } from "@testing-library/react";
+import { test, expect, vi } from "vitest";
+import TaskList from "@/components/TaskList";
+import * as api from "@/services/api";
 
-test('TaskList renders multiple TaskCards', () => {
-  const mockList = { id: 1, title: 'Sprint 1' };
-  const mockTasks = [
-    { id: 1, title: 'Task A' },
-    { id: 2, title: 'Task B' },
-  ];
+// Mockuj službu pro načtení úkolů
+vi.mock("@/services/api", async () => {
+  const actual = await vi.importActual("@/services/api");
+  return {
+    ...actual,
+    taskService: {
+      ...actual.taskService,
+      getTasksByListId: vi.fn(),
+    },
+  };
+});
 
-  render(<TaskList list={mockList} tasks={mockTasks} />);
-  
-  expect(screen.getByText(/task a/i)).toBeDefined();
-  expect(screen.getByText(/task b/i)).toBeDefined();
+test("TaskList renders multiple TaskCards", async () => {
+  api.taskService.getTasksByListId.mockResolvedValue({
+    open: [
+      { id: "1", text: "Název: Task A\nPopis: Popis A\nPriorita: normal", state: 0 },
+      { id: "2", text: "Název: Task B\nPopis: Popis B\nPriorita: high", state: 0 },
+    ],
+    inProgress: [],
+    completed: [],
+  });
+
+  render(
+    <TaskList
+      isVisible={true}
+      taskList={{ id: "test-list-id", name: "My Tasks" }}
+    />
+  );
+
+  await waitFor(() => {
+    expect(screen.getByText(/task a/i)).toBeInTheDocument();
+    expect(screen.getByText(/task b/i)).toBeInTheDocument();
+  });
 });
