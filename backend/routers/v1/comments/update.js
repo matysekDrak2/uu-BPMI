@@ -29,6 +29,7 @@ module.exports = function create(req, res) {
 
     const getTaskById = require('../../../dao/task/get');
     const task = getTaskById(comment.taskId);
+    if (!task) return res.status(404).json({ error: 'Task not found' }).send();
 
     const getListById = require('../../../dao/task-list/get');
     const taskList = getListById(task.taskListId);
