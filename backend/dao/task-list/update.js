@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require("node:path");
 
 module.exports = function update(id, newData) {
-    const filePath = path.join(process.cwd(), 'data.tst', 'tasks.json');
+    const filePath = path.join(process.cwd(), 'data.tst', 'task-list.json');
 
     if (!fs.existsSync(filePath)) {
         fs.mkdir(path.dirname(filePath), { recursive: true }, (err) => {

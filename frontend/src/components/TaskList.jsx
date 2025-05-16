@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import CreateTaskModal from './CreateTaskModal';
 import TaskDetailModal from './TaskDetailModal';
+import ManageUsersModal from './ManageUsersModal';
 import { TaskCard } from './TaskCard';
 import TaskColumn from './TaskColumn';
 import { taskService } from '../services/api';
@@ -52,6 +53,7 @@ const getPriorityLabel = (priority) => {
 const TaskList = ({ isVisible, taskList }) => {
     const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+    const [isManageUsersModalOpen, setIsManageUsersModalOpen] = useState(false);
     const [selectedTask, setSelectedTask] = useState(null);
     const [tasks, setTasks] = useState({
         open: [],      // state = 0
@@ -61,10 +63,12 @@ const TaskList = ({ isVisible, taskList }) => {
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     const [draggedTask, setDraggedTask] = useState(null);
+    const [currentTaskList, setCurrentTaskList] = useState(taskList);
 
     // Load tasks when the component mounts or when taskList changes
     useEffect(() => {
         if (isVisible && taskList && taskList.id) {
+            setCurrentTaskList(taskList);
             loadTasks();
         }
     }, [isVisible, taskList]);
@@ -239,6 +243,15 @@ const TaskList = ({ isVisible, taskList }) => {
         loadTasks();
     };
 
+    // Handle managing users
+    const handleManageUsers = () => {
+        setIsManageUsersModalOpen(true);
+    };
+
+    const handleTaskListUpdate = (updatedTaskList) => {
+        setCurrentTaskList(updatedTaskList);
+    };
+
     // render task card for each column
     const renderTaskCard = (task) => {
         return (
@@ -256,16 +269,24 @@ const TaskList = ({ isVisible, taskList }) => {
 
     return (
         <div className={`tasklist ${isVisible ? 'visible' : 'hidden'}`}>
-            {taskList && (
+            {currentTaskList && (
                 <>
                     <div className="tasklist-header">
-                        <h3 className="tasklist-title">{taskList.name}</h3>
-                        <button
-                            className="create-task-button"
-                            onClick={handleCreateTask}
-                        >
-                            Vytvořit úkol
-                        </button>
+                        <h3 className="tasklist-title">{currentTaskList.name}</h3>
+                        <div className="tasklist-actions">
+                            <button
+                                className="manage-users-button"
+                                onClick={handleManageUsers}
+                            >
+                                Manage Users
+                            </button>
+                            <button
+                                className="create-task-button"
+                                onClick={handleCreateTask}
+                            >
+                                Vytvořit úkol
+                            </button>
+                        </div>
                     </div>
 
                     {error && <div className="error-message">{error}</div>}
@@ -311,8 +332,8 @@ const TaskList = ({ isVisible, taskList }) => {
             <CreateTaskModal
                 isOpen={isTaskModalOpen}
                 onClose={() => setIsTaskModalOpen(false)}
-                onSubmit={(text) => handleTaskSubmit(taskList.id, text)}
-                taskListId={taskList ? taskList.id : null}
+                onSubmit={(text) => handleTaskSubmit(currentTaskList.id, text)}
+                taskListId={currentTaskList ? currentTaskList.id : null}
             />
 
             {selectedTask && (
@@ -322,6 +343,13 @@ const TaskList = ({ isVisible, taskList }) => {
                     onClose={() => setIsDetailModalOpen(false)}
                 />
             )}
+
+            <ManageUsersModal
+                isOpen={isManageUsersModalOpen}
+                taskList={currentTaskList}
+                onClose={() => setIsManageUsersModalOpen(false)}
+                onUpdate={handleTaskListUpdate}
+            />
         </div>
     );
 };

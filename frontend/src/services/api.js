@@ -242,6 +242,40 @@ const taskListService = {
             console.error('Get task list error:', error);
             throw error;
         }
+    },
+
+    updateTaskList: async function (taskListId, newData) {
+        try {
+            const sessionId = sessionManager.getSessionId();
+
+            if (!sessionId) {
+                throw new Error('User is not signed');
+            }
+
+            console.log(`Updating task list ${taskListId} with data:`, newData);
+            const response = await fetch(`${API_BASE_URL}/taskList`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'sessionkey': sessionId
+                },
+                body: JSON.stringify({
+                    taskListId: taskListId,
+                    newData: newData
+                }),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Task list update failed with response:', errorText);
+                throw new Error(errorText || 'Unable to update task list');
+            }
+
+            return await handleResponse(response, 'Unable to update task list');
+        } catch (error) {
+            console.error('Update task list error:', error);
+            throw error;
+        }
     }
 };
 
@@ -471,6 +505,29 @@ const userService = {
             return await handleResponse(response, 'Nepodařilo se načíst uživatele');
         } catch (error) {
             console.error('Get user error:', error);
+            throw error;
+        }
+    },
+
+    getUserByEmail: async function (email) {
+        try {
+            const sessionId = sessionManager.getSessionId();
+
+            if (!sessionId) {
+                throw new Error('Uživatel není přihlášen');
+            }
+
+            const response = await fetch(`${API_BASE_URL}/user/getByEmail?email=${encodeURIComponent(email)}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'sessionkey': sessionId
+                }
+            });
+
+            return await handleResponse(response, 'Nepodařilo se najít uživatele podle emailu');
+        } catch (error) {
+            console.error('Get user by email error:', error);
             throw error;
         }
     }
