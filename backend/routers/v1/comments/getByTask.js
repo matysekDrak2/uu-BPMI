@@ -40,12 +40,12 @@ module.exports = function getCommentsByTask(req, res) {
     // Kontrola oprávnění
     if (
         taskList.owner !== userId &&
-        (!taskList.admins || !taskList.admins.includes(userId)) &&
-        (!taskList.members || !taskList.members.includes(userId))
+        !taskList.admins.includes(userId) &&
+        !taskList.members.includes(userId)
     ) {
         return res.status(403).json({ error: 'Not authorized to access this task list' }).send();
     }
 
-    const comments = getCommentsByTaskId(query.taskId) || [];
-    res.status(200).json(comments).send();
-} 
+    const comments = getCommentsByTaskId(query.taskId);
+    res.status(200).json(comments || []).send();
+};
