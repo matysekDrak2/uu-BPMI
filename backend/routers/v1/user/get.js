@@ -21,18 +21,18 @@ module.exports = function getUserById(req, res) {
     const userId = getUserId(req.headers.sessionkey);
 
     if (!validateRequest(query)) {
-        res.status(400).json(validateRequest.errors).send();
+        res.status(400).json(validateRequest.errors);
         return;
     }
 
     const user = getUser(query.id);
 
     if (!user) {
-        res.status(404).json({ error: 'User not found' }).send();
+        res.status(404).json({ error: 'User not found' });
         return;
     }
 
     const { password, ...userWithoutPassword } = user;
 
-    res.status(200).json(userWithoutPassword).send();
+    res.status(200).json(userWithoutPassword);
 } 

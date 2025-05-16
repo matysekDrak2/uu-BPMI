@@ -20,7 +20,7 @@ router.post('/', (req, res) => {
     const data = req.body;
     const valid = validator(data)
     if ( !valid ) {
-        res.status(400).json(validator.errors).send()
+        res.status(400).json(validator.errors)
         return
     }
 

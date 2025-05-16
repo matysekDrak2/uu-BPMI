@@ -18,7 +18,7 @@ function getTasks(req, res) {
     const query = req.query;
     const userId = getUserId(req.headers.sessionkey)
     if (!validator(query)){
-        res.status(400).json(validator.errors).send()
+        res.status(400).json(validator.errors)
         return
     }
 
@@ -29,14 +29,14 @@ function getTasks(req, res) {
         !taskList.admins.includes(userId) &&
         !taskList.members.includes(userId)
     ){
-        res.status(403).json({error: "Not authorized in this task list"}).send()
+        res.status(403).json({error: "Not authorized in this task list"})
         return
     }
 
     const daoGetAll = require("../../../dao/task/getAll");
     const data = daoGetAll(query.taskListId);
 
-    res.status(200).json(data).send();
+    res.status(200).json(data);
 }
 
 module.exports = getTasks;

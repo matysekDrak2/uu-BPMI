@@ -18,7 +18,7 @@ function auth(req, res, next){
 
     const valid = validator( sessionKey );
     if ( !valid ) {
-        res.status(400).json(validator.errors).send()
+        res.status(400).json(validator.errors)
         return
     }
 

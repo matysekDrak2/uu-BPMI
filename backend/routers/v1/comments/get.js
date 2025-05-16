@@ -24,15 +24,15 @@ module.exports = function getComments(req, res) {
     const userId = getUserId(req.headers.sessionkey);
 
     if (!validateRequest(query)) {
-        res.status(400).json(validateRequest.errors).send();
+        res.status(400).json(validateRequest.errors);
         return;
     }
 
     const comment = getCommentsById(query.id);
-    if (!comment) return res.status(404).json({ error: 'Comment not found' }).send();
+    if (!comment) return res.status(404).json({ error: 'Comment not found' });
 
     const task = getTask(comment.taskId);
-    if (!task) return res.status(404).json({ error: 'Task not found' }).send();
+    if (!task) return res.status(404).json({ error: 'Task not found' });
 
     const taskList = getTaskList(task.taskListId);
 
@@ -41,9 +41,9 @@ module.exports = function getComments(req, res) {
         !taskList.admins.includes(userId) &&
         !taskList.members.includes(userId)
     ) {
-        res.status(403).send('Not authorized to access this task list');
+        res.status(403).json({ error: 'Not authorized to access this task list'});
         return;
     }
 
-    res.status(200).json(comment).send();
+    res.status(200).json(comment);
 }

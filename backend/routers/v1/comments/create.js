@@ -23,13 +23,13 @@ module.exports = function create(req, res) {
     const userId = getUserId(req.headers.sessionkey)
 
     if (!validateComment(comment)) {
-        res.status(400).json({ error: validateComment.errors }).send();
+        res.status(400).json({ error: validateComment.errors });
         return;
     }
 
     const getTaskById = require('../../../dao/task/get');
     const task = getTaskById(comment.taskId);
-    if (!task) return res.status(404).json({ error: 'Task not found' }).send();
+    if (!task) return res.status(404).json({ error: 'Task not found' });
 
     const getListById = require('../../../dao/task-list/get');
     const taskList = getListById(task.taskListId);
@@ -38,7 +38,7 @@ module.exports = function create(req, res) {
         !taskList.admins.includes(userId) &&
         !taskList.members.includes(userId)
     ){
-        res.status(403).json({error: "Not authorized in this task list"}).send()
+        res.status(403).json({error: "Not authorized in this task list"})
         return
     }
 
@@ -47,5 +47,5 @@ module.exports = function create(req, res) {
     comment.createdAt = new Date().toISOString();
 
     createComment(comment);
-    res.status(201).json(comment).send();
+    res.status(201).json(comment);
 };

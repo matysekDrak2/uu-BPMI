@@ -23,18 +23,18 @@ module.exports = function getCommentsByTask(req, res) {
     const userId = getUserId(req.headers.sessionkey);
 
     if (!validateRequest(query)) {
-        res.status(400).json(validateRequest.errors).send();
+        res.status(400).json(validateRequest.errors);
         return;
     }
 
     const task = getTask(query.taskId);
     if (!task) {
-        return res.status(404).json({ error: 'Task not found' }).send();
+        return res.status(404).json({ error: 'Task not found' });
     }
 
     const taskList = getTaskList(task.taskListId);
     if (!taskList) {
-        return res.status(404).json({ error: 'Task list not found' }).send();
+        return res.status(404).json({ error: 'Task list not found' });
     }
 
     // Kontrola oprávnění
@@ -43,9 +43,9 @@ module.exports = function getCommentsByTask(req, res) {
         !taskList.admins.includes(userId) &&
         !taskList.members.includes(userId)
     ) {
-        return res.status(403).json({ error: 'Not authorized to access this task list' }).send();
+        return res.status(403).json({ error: 'Not authorized to access this task list' });
     }
 
     const comments = getCommentsByTaskId(query.taskId);
-    res.status(200).json(comments || []).send();
+    res.status(200).json(comments || []);
 };

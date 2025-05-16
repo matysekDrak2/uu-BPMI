@@ -18,7 +18,7 @@ function create(req, res) {
     const body = req.body
     const valid = validator(body);
     if (!valid) {
-        res.status(400).json(validator.errors).send()
+        res.status(400).json(validator.errors)
         return
     }
 
@@ -28,7 +28,7 @@ function create(req, res) {
     const daoCreate = require("../../../dao/task-list/create");
     const data = daoCreate(body.name, userId);
 
-    res.status(200).json(data).send();
+    res.status(200).json(data);
 }
 
 module.exports = create;

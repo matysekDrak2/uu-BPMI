@@ -17,7 +17,7 @@ module.exports = function get(req, res) {
     const body = req.query;
     const userId = req.headers.userId
     if (!validator(body)){
-        res.status(400).json(validator.errors).send()
+        res.status(400).json(validator.errors)
         return
     }
 
@@ -32,12 +32,12 @@ module.exports = function get(req, res) {
         !taskList.admins.includes(userId) &&
         !taskList.members.includes(userId)
     ){
-        res.status(403).json({error: "Not authorized in this task list"}).send()
+        res.status(403).json({error: "Not authorized in this task list"})
         return
     }
 
     const getComments = require("../../../dao/comment/get");
     const comments = getComments(body.id);
 
-    res.status(200).json({...data, comments: comments}).send();
+    res.status(200).json({...data, comments: comments});
 }

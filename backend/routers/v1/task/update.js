@@ -19,14 +19,14 @@ function update(req, res) {
     const body = req.body;
     const userId = req.headers.userId
     if (!validator(body)){
-        res.status(400).json(validator.errors).send()
+        res.status(400).json(validator.errors)
         return
     }
     const daoGet = require("../../../dao/task/get");
     const prevData = daoGet(body.id);
 
     if (!prevData) {
-        res.status(404).json({ error: "Task not found" }).send();
+        res.status(404).json({ error: "Task not found" });
         return;
     }
 
@@ -34,7 +34,7 @@ function update(req, res) {
     const taskList = taskListGet(prevData.taskListId)
 
     if (!taskList) {
-        res.status(404).json({ error: "Task list not found" }).send();
+        res.status(404).json({ error: "Task list not found" });
         return;
     }
 
@@ -42,7 +42,7 @@ function update(req, res) {
         !taskList.admins.includes(userId) &&
         !taskList.members.includes(userId)
     ) {
-        res.status(403).json({error: "Not authorized in this task list"}).send()
+        res.status(403).json({error: "Not authorized in this task list"})
         return
     }
 
@@ -57,7 +57,7 @@ function update(req, res) {
     const daoCreate = require("../../../dao/task/create");
     daoCreate(toWrite);
 
-    res.status(200).json(toWrite).send();
+    res.status(200).json(toWrite);
 }
 
 module.exports = update;

@@ -20,7 +20,7 @@ function create(req, res) {
     const body = req.body;
     const userId = req.headers.userId
     if (!validator(body)){
-        res.status(400).json(validator.errors).send()
+        res.status(400).json(validator.errors)
         return
     }
 
@@ -31,7 +31,7 @@ function create(req, res) {
         !taskList.admins.includes(userId) &&
         !taskList.members.includes(userId)
     ){
-        res.status(403).json({error: "Not authorized in this task list"}).send()
+        res.status(403).json({error: "Not authorized in this task list"})
         return
     }
 
@@ -47,7 +47,7 @@ function create(req, res) {
     }
     daoCreate(task);
 
-    res.status(200).json(task).send();
+    res.status(200).json(task);
 }
 
 module.exports = create;
