@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { commentService, attachmentService } from '../services/api';
 
 const CreateTaskModal = ({ isOpen, onClose, onSubmit, taskListId }) => {
     const [taskData, setTaskData] = useState({
@@ -6,9 +7,28 @@ const CreateTaskModal = ({ isOpen, onClose, onSubmit, taskListId }) => {
         description: '',
         priority: 'normal',
         deadline: '',
-        attachments: null
     });
+    const [selectedFiles, setSelectedFiles] = useState([]);
     const [error, setError] = useState(null);
+    const [uploading, setUploading] = useState(false);
+    const MAX_FILES = 5;
+
+    useEffect(() => {
+        if (isOpen) {
+            resetForm();
+        }
+    }, [isOpen]);
+
+    const resetForm = () => {
+        setTaskData({
+            title: '',
+            description: '',
+            priority: 'normal',
+            deadline: '',
+        });
+        setSelectedFiles([]);
+        setError(null);
+    };
 
     if (!isOpen) return null;
 
@@ -21,13 +41,23 @@ const CreateTaskModal = ({ isOpen, onClose, onSubmit, taskListId }) => {
     };
 
     const handleFileChange = (e) => {
-        setTaskData({
-            ...taskData,
-            attachments: e.target.files[0]
-        });
+        const fileList = Array.from(e.target.files);
+        if (fileList.length + selectedFiles.length > MAX_FILES) {
+            setError(`Můžete nahrát maximálně ${MAX_FILES} souborů.`);
+            return;
+        }
+
+        setSelectedFiles(prev => [...prev, ...fileList]);
+        setError(null);
+
+        e.target.value = null;
     };
 
-    const handleSubmit = (e) => {
+    const removeFile = (index) => {
+        setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (!taskData.title.trim()) {
@@ -35,14 +65,40 @@ const CreateTaskModal = ({ isOpen, onClose, onSubmit, taskListId }) => {
             return;
         }
 
-        // Create task text from form data
         const taskText = `Název: ${taskData.title}\n` +
             `Popis: ${taskData.description}\n` +
             `Priorita: ${taskData.priority}\n` +
-            (taskData.deadline ? `Termín: ${taskData.deadline}\n` : '') +
-            (taskData.attachments ? `Příloha: ${taskData.attachments.name}` : '');
+            (taskData.deadline ? `Termín: ${taskData.deadline}\n` : '');
 
-        onSubmit(taskText);
+        try {
+            const createdTask = await onSubmit(taskText);
+
+            if (createdTask && createdTask.id && selectedFiles.length > 0) {
+                setUploading(true);
+
+                for (const file of selectedFiles) {
+                    const comment = await commentService.createComment(
+                        createdTask.id,
+                        `Příloha: ${file.name}`
+                    );
+
+                    if (comment && comment.id) {
+                        // Upload the file to the comment
+                        await attachmentService.uploadFileToComment(file, comment.id);
+                    }
+                }
+
+                setUploading(false);
+            }
+
+            // Reset form and close the modal
+            resetForm();
+            onClose();
+        } catch (err) {
+            console.error('Error creating task or uploading attachment:', err);
+            setError(err.message || 'Nepodařilo se vytvořit úkol nebo nahrát přílohu');
+            setUploading(false);
+        }
     };
 
     return (
@@ -102,23 +158,62 @@ const CreateTaskModal = ({ isOpen, onClose, onSubmit, taskListId }) => {
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="attachments">Připojit soubor</label>
-                        <input
-                            type="file"
-                            id="attachments"
-                            name="attachments"
-                            onChange={handleFileChange}
-                        />
+                        <label htmlFor="attachments">
+                            Připojit soubory
+                        </label>
+                        <div className="file-input-container">
+                            <button
+                                type="button"
+                                className="choose-files-btn"
+                                onClick={() => document.getElementById("attachments").click()}
+                                disabled={selectedFiles.length >= MAX_FILES || uploading}
+                            >
+                                Vybrat soubory
+                            </button>
+                            <span className="file-count">
+                                {selectedFiles.length > 0 ? `${selectedFiles.length} souborů vybráno` : 'Žádné soubory'}
+                            </span>
+                            <input
+                                type="file"
+                                id="attachments"
+                                name="attachments"
+                                onChange={handleFileChange}
+                                multiple
+                                disabled={selectedFiles.length >= MAX_FILES || uploading}
+                                style={{ display: 'none' }}
+                            />
+                        </div>
+
+                        {selectedFiles.length > 0 && (
+                            <div className="selected-files">
+                                <ul>
+                                    {selectedFiles.map((file, index) => (
+                                        <li key={index} className="selected-file-item">
+                                            <span className="file-name">{file.name}</span>
+                                            <button
+                                                type="button"
+                                                className="remove-file-btn"
+                                                onClick={() => removeFile(index)}
+                                                disabled={uploading}
+                                            >
+                                                ×
+                                            </button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
                     </div>
 
                     {error && <div className="modal-error">{error}</div>}
+                    {uploading && <div className="uploading-message">Nahrávám přílohy... ({selectedFiles.length})</div>}
 
                     <div className="modal-buttons">
-                        <button type="button" onClick={onClose}>
+                        <button type="button" onClick={onClose} disabled={uploading}>
                             Zrušit
                         </button>
-                        <button type="submit">
-                            Potvrdit
+                        <button type="submit" disabled={uploading}>
+                            {uploading ? 'Nahrávám...' : 'Potvrdit'}
                         </button>
                     </div>
                 </form>
