@@ -108,9 +108,11 @@ const TaskList = ({ isVisible, taskList }) => {
             }
 
             setIsTaskModalOpen(false);
+            return newTask;
         } catch (err) {
             console.error('Error creating task:', err);
             setError(err.message || 'Nepodařilo se vytvořit úkol');
+            throw err;
         }
     };
 
