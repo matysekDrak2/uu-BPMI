@@ -8,7 +8,7 @@ addFormats(ajv)
 const user_login_tmpl = {
     type: 'object',
     properties: {
-        email: { type: 'string', maxLength: 200 },
+        email: { type: 'string', format: 'email' },
         password: { type: 'string' }
     },
     required: ['email', 'password'],
