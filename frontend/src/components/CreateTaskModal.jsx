@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { commentService, attachmentService } from '../services/api';
 
 const CreateTaskModal = ({ isOpen, onClose, onSubmit, taskListId }) => {
     const [taskData, setTaskData] = useState({
@@ -9,6 +10,7 @@ const CreateTaskModal = ({ isOpen, onClose, onSubmit, taskListId }) => {
         attachments: null
     });
     const [error, setError] = useState(null);
+    const [uploading, setUploading] = useState(false);
 
     if (!isOpen) return null;
 
@@ -27,7 +29,7 @@ const CreateTaskModal = ({ isOpen, onClose, onSubmit, taskListId }) => {
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (!taskData.title.trim()) {
@@ -35,14 +37,41 @@ const CreateTaskModal = ({ isOpen, onClose, onSubmit, taskListId }) => {
             return;
         }
 
-        // Create task text from form data
+        // Create task text from form data (without attachment info)
         const taskText = `Název: ${taskData.title}\n` +
             `Popis: ${taskData.description}\n` +
             `Priorita: ${taskData.priority}\n` +
-            (taskData.deadline ? `Termín: ${taskData.deadline}\n` : '') +
-            (taskData.attachments ? `Příloha: ${taskData.attachments.name}` : '');
+            (taskData.deadline ? `Termín: ${taskData.deadline}\n` : '');
 
-        onSubmit(taskText);
+        try {
+            // Create the task first
+            const createdTask = await onSubmit(taskText);
+
+            // If there's an attachment, upload it as a comment
+            if (createdTask && createdTask.id && taskData.attachments) {
+                setUploading(true);
+
+                // Create a comment for the attachment
+                const comment = await commentService.createComment(
+                    createdTask.id,
+                    `Příloha: ${taskData.attachments.name}`
+                );
+
+                if (comment && comment.id) {
+                    // Upload the file to the comment
+                    await attachmentService.uploadFileToComment(taskData.attachments, comment.id);
+                }
+
+                setUploading(false);
+            }
+
+            // Close the modal
+            onClose();
+        } catch (err) {
+            console.error('Error creating task or uploading attachment:', err);
+            setError(err.message || 'Nepodařilo se vytvořit úkol nebo nahrát přílohu');
+            setUploading(false);
+        }
     };
 
     return (
@@ -112,13 +141,14 @@ const CreateTaskModal = ({ isOpen, onClose, onSubmit, taskListId }) => {
                     </div>
 
                     {error && <div className="modal-error">{error}</div>}
+                    {uploading && <div className="uploading-message">Nahrávám přílohu...</div>}
 
                     <div className="modal-buttons">
-                        <button type="button" onClick={onClose}>
+                        <button type="button" onClick={onClose} disabled={uploading}>
                             Zrušit
                         </button>
-                        <button type="submit">
-                            Potvrdit
+                        <button type="submit" disabled={uploading}>
+                            {uploading ? 'Nahrávám...' : 'Potvrdit'}
                         </button>
                     </div>
                 </form>
