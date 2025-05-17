@@ -13,7 +13,6 @@ const CreateTaskModal = ({ isOpen, onClose, onSubmit, taskListId }) => {
     const [uploading, setUploading] = useState(false);
     const MAX_FILES = 5;
 
-    // Reset form when modal is opened
     useEffect(() => {
         if (isOpen) {
             resetForm();
@@ -51,7 +50,6 @@ const CreateTaskModal = ({ isOpen, onClose, onSubmit, taskListId }) => {
         setSelectedFiles(prev => [...prev, ...fileList]);
         setError(null);
 
-        // Reset the file input value to allow selecting the same file again
         e.target.value = null;
     };
 
@@ -67,23 +65,18 @@ const CreateTaskModal = ({ isOpen, onClose, onSubmit, taskListId }) => {
             return;
         }
 
-        // Create task text from form data (without attachment info)
         const taskText = `Název: ${taskData.title}\n` +
             `Popis: ${taskData.description}\n` +
             `Priorita: ${taskData.priority}\n` +
             (taskData.deadline ? `Termín: ${taskData.deadline}\n` : '');
 
         try {
-            // Create the task first
             const createdTask = await onSubmit(taskText);
 
-            // If there are attachments, upload them as comments
             if (createdTask && createdTask.id && selectedFiles.length > 0) {
                 setUploading(true);
 
-                // Upload each file as a separate comment
                 for (const file of selectedFiles) {
-                    // Create a comment for the attachment
                     const comment = await commentService.createComment(
                         createdTask.id,
                         `Příloha: ${file.name}`
