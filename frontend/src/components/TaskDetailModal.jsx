@@ -224,7 +224,7 @@ const TaskDetailModal = ({ isOpen, task, onClose }) => {
                                     className="task-detail-title clickable"
                                     onClick={() => startEditing('Název', taskData['Název'])}
                                 >
-                                    {taskData['Název'] || 'Untitled Task'}
+                                    {taskData['Název'] || 'Nepojmenovaný úkol'}
                                 </h4>
                             )}
                         </div>
@@ -283,7 +283,6 @@ const TaskDetailModal = ({ isOpen, task, onClose }) => {
                         )}
                     </div>
 
-                    {/* Termín ve stejném stylu jako Popis */}
                     <div className="task-detail-section">
                         <h5>Termín</h5>
                         {editing === 'Termín' ? (

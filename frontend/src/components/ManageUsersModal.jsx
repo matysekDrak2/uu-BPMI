@@ -33,7 +33,7 @@ const ManageUsersModal = ({ isOpen, onClose, taskList, onUpdate }) => {
                             return await userService.getUserById(userId);
                         } catch (err) {
                             console.error(`Error fetching user ${userId}:`, err);
-                            return { id: userId, name: 'Unknown User', email: 'unknown' };
+                            return { id: userId, name: 'Neznámý uživatel', email: 'neznámý' };
                         }
                     })
                 );
@@ -49,7 +49,7 @@ const ManageUsersModal = ({ isOpen, onClose, taskList, onUpdate }) => {
                 setUsers([]);
             }
         } catch (err) {
-            setError('Failed to load users');
+            setError('Nepodařilo se načíst uživatele');
             console.error('Error loading users:', err);
         } finally {
             setLoading(false);
@@ -58,7 +58,7 @@ const ManageUsersModal = ({ isOpen, onClose, taskList, onUpdate }) => {
 
     const handleAddUser = async () => {
         if (!userEmail) {
-            setError('Please enter a user email');
+            setError('Zadejte prosím e-mail uživatele');
             return;
         }
 
@@ -71,16 +71,16 @@ const ManageUsersModal = ({ isOpen, onClose, taskList, onUpdate }) => {
                 foundUser = await userService.getUserByEmail(userEmail);
             } catch (err) {
                 if (err.message.includes('not found')) {
-                    setError(`User with email ${userEmail} not found`);
+                    setError(`Uživatel s e-mailem ${userEmail} nebyl nalezen`);
                 } else {
-                    setError(`Error finding user: ${err.message}`);
+                    setError(`Chyba při hledání uživatele: ${err.message}`);
                 }
                 setLoading(false);
                 return;
             }
 
             if (!foundUser || !foundUser.id) {
-                setError(`User with email ${userEmail} not found`);
+                setError(`Uživatel s e-mailem ${userEmail} nebyl nalezen`);
                 setLoading(false);
                 return;
             }
@@ -89,7 +89,7 @@ const ManageUsersModal = ({ isOpen, onClose, taskList, onUpdate }) => {
             if (!newData.members) newData.members = [];
 
             if (newData.members.includes(foundUser.id)) {
-                setError(`User ${foundUser.name || userEmail} is already a member`);
+                setError(`Uživatel ${foundUser.name || userEmail} je již členem`);
                 setLoading(false);
                 return;
             }
@@ -107,7 +107,7 @@ const ManageUsersModal = ({ isOpen, onClose, taskList, onUpdate }) => {
                 setError(null);
             }
         } catch (err) {
-            setError(`Failed to add user: ${err.message}`);
+            setError(`Nepodařilo se přidat uživatele: ${err.message}`);
             console.error('Error adding user:', err);
         } finally {
             setLoading(false);
@@ -116,7 +116,7 @@ const ManageUsersModal = ({ isOpen, onClose, taskList, onUpdate }) => {
 
     const handleRemoveUser = async (userId) => {
         if (userId === taskList.owner) {
-            setError('Cannot remove the owner of the task list');
+            setError('Nelze odstranit vlastníka seznamu úkolů');
             return;
         }
 
@@ -144,7 +144,7 @@ const ManageUsersModal = ({ isOpen, onClose, taskList, onUpdate }) => {
                 loadUsers();
             }
         } catch (err) {
-            setError(`Failed to remove user: ${err.message}`);
+            setError(`Nepodařilo se odstranit uživatele: ${err.message}`);
             console.error('Error removing user:', err);
         } finally {
             setLoading(false);
@@ -157,7 +157,7 @@ const ManageUsersModal = ({ isOpen, onClose, taskList, onUpdate }) => {
         <div className="modal-backdrop">
             <div className="modal-content manage-users-modal">
                 <div className="modal-header">
-                    <h3>Manage Users - {taskList?.name}</h3>
+                    <h3 title={taskList?.name}>Správa uživatelů - {taskList?.name}</h3>
                     <button className="close-button" onClick={onClose}>×</button>
                 </div>
 
@@ -165,11 +165,11 @@ const ManageUsersModal = ({ isOpen, onClose, taskList, onUpdate }) => {
                     {error && <div className="error-message">{error}</div>}
 
                     <div className="add-user-form">
-                        <h4>Add User</h4>
+                        <h4>Přidat uživatele</h4>
                         <div className="form-row">
                             <input
                                 type="email"
-                                placeholder="User email"
+                                placeholder="E-mail uživatele"
                                 value={userEmail}
                                 onChange={(e) => setUserEmail(e.target.value)}
                             />
@@ -178,17 +178,17 @@ const ManageUsersModal = ({ isOpen, onClose, taskList, onUpdate }) => {
                                 disabled={loading}
                                 className="add-button"
                             >
-                                Add
+                                Přidat
                             </button>
                         </div>
                     </div>
 
                     <div className="users-list">
-                        <h4>Users</h4>
+                        <h4>Uživatelé</h4>
                         {loading && users.length === 0 ? (
-                            <p>Loading...</p>
+                            <p>Načítání...</p>
                         ) : users.length === 0 ? (
-                            <p>No users</p>
+                            <p>Žádní uživatelé</p>
                         ) : (
                             <ul>
                                 {users.map(user => (
@@ -196,9 +196,9 @@ const ManageUsersModal = ({ isOpen, onClose, taskList, onUpdate }) => {
                                         <span>
                                             {user.name} ({user.email})
                                             {taskList.owner === user.id ? (
-                                                <span className="user-tag owner-tag">Owner</span>
+                                                <span className="user-tag owner-tag">Vlastník</span>
                                             ) : (
-                                                <span className="user-tag member-tag">Member</span>
+                                                <span className="user-tag member-tag">Člen</span>
                                             )}
                                         </span>
                                         {taskList.owner !== user.id && (
@@ -207,7 +207,7 @@ const ManageUsersModal = ({ isOpen, onClose, taskList, onUpdate }) => {
                                                 disabled={loading}
                                                 className="remove-button"
                                             >
-                                                Remove
+                                                Odstranit
                                             </button>
                                         )}
                                     </li>
@@ -218,7 +218,7 @@ const ManageUsersModal = ({ isOpen, onClose, taskList, onUpdate }) => {
                 </div>
 
                 <div className="modal-footer">
-                    <button onClick={onClose}>Close</button>
+                    <button onClick={onClose}>Zavřít</button>
                 </div>
             </div>
         </div>

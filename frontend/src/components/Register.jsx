@@ -91,7 +91,7 @@ function Register({ onSwitchToLogin }) {
             {/* Display success message if there is one */}
             {success && <div className="success-message">{success}</div>}
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} noValidate>
                 <FormInput
                     type="text"
                     value={name}

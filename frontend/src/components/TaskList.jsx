@@ -15,10 +15,10 @@ import '../styles/TaskList.css';
 
 // Helper functions
 const parseTaskBasicInfo = (text) => {
-    if (!text) return { title: 'Untitled Task', priority: 'normal', description: '' };
+    if (!text) return { title: 'Nepojmenovaný úkol', priority: 'normal', description: '' };
 
     const lines = text.split('\n');
-    let title = 'Untitled Task';
+    let title = 'Nepojmenovaný úkol';
     let priority = 'normal';
     let description = '';
 
@@ -280,7 +280,7 @@ const TaskList = ({ isVisible, taskList }) => {
                                 className="manage-users-button"
                                 onClick={handleManageUsers}
                             >
-                                Manage Users
+                                Správa uživatelů
                             </button>
                             <button
                                 className="create-task-button"
