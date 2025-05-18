@@ -77,7 +77,7 @@ function Login({ onSwitchToRegister }) {
             {/* Display error only in case there is one */}
             {error && <div className="error-message">{error}</div>}
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} noValidate>
                 <FormInput
                     type="email"
                     value={email}
