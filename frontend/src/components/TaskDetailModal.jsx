@@ -203,52 +203,59 @@ const TaskDetailModal = ({ isOpen, task, onClose }) => {
 
                 <div className="task-detail-content">
                     <div className="task-detail-header">
-                        {editing === 'Název' ? (
-                            <div className="edit-container">
-                                <input
-                                    type="text"
-                                    value={editValue}
-                                    onChange={(e) => setEditValue(e.target.value)}
-                                    className="edit-input"
-                                />
-                                <div className="edit-buttons">
-                                    <button onClick={saveEdit} disabled={saving}>Uložit</button>
-                                    <button onClick={cancelEditing}>Zrušit</button>
+                        <div className="task-title-container">
+                            {editing === 'Název' ? (
+                                <div className="edit-container edit-name-container">
+                                    <input
+                                        type="text"
+                                        value={editValue}
+                                        onChange={(e) => setEditValue(e.target.value)}
+                                        className="edit-input"
+                                        placeholder="Zadejte název úkolu"
+                                        autoFocus
+                                    />
+                                    <div className="edit-buttons">
+                                        <button onClick={saveEdit} disabled={saving}>Uložit</button>
+                                        <button onClick={cancelEditing}>Zrušit</button>
+                                    </div>
                                 </div>
-                            </div>
-                        ) : (
-                            <h4
-                                className="task-detail-title clickable"
-                                onClick={() => startEditing('Název', taskData['Název'])}
-                            >
-                                {taskData['Název'] || 'Untitled Task'}
-                            </h4>
-                        )}
-
-                        {editing === 'Priorita' ? (
-                            <div className="edit-container">
-                                <select
-                                    value={editValue}
-                                    onChange={(e) => setEditValue(e.target.value)}
-                                    className="edit-input"
+                            ) : (
+                                <h4
+                                    className="task-detail-title clickable"
+                                    onClick={() => startEditing('Název', taskData['Název'])}
                                 >
-                                    <option value="high">Vysoká</option>
-                                    <option value="normal">Střední</option>
-                                    <option value="low">Nízká</option>
-                                </select>
-                                <div className="edit-buttons">
-                                    <button onClick={saveEdit} disabled={saving}>Uložit</button>
-                                    <button onClick={cancelEditing}>Zrušit</button>
+                                    {taskData['Název'] || 'Untitled Task'}
+                                </h4>
+                            )}
+                        </div>
+
+                        <div className="task-priority-container">
+                            {editing === 'Priorita' ? (
+                                <div className="edit-container edit-priority-container">
+                                    <select
+                                        value={editValue}
+                                        onChange={(e) => setEditValue(e.target.value)}
+                                        className="edit-input priority-select"
+                                        autoFocus
+                                    >
+                                        <option value="high">Vysoká</option>
+                                        <option value="normal">Střední</option>
+                                        <option value="low">Nízká</option>
+                                    </select>
+                                    <div className="edit-buttons">
+                                        <button onClick={saveEdit} disabled={saving}>Uložit</button>
+                                        <button onClick={cancelEditing}>Zrušit</button>
+                                    </div>
                                 </div>
-                            </div>
-                        ) : (
-                            <span
-                                className={`task-priority ${getPriorityClass(taskData['Priorita'])} clickable`}
-                                onClick={() => startEditing('Priorita', taskData['Priorita'] || 'normal')}
-                            >
-                                {getPriorityLabel(taskData['Priorita'])}
-                            </span>
-                        )}
+                            ) : (
+                                <span
+                                    className={`task-priority ${getPriorityClass(taskData['Priorita'])} clickable`}
+                                    onClick={() => startEditing('Priorita', taskData['Priorita'] || 'normal')}
+                                >
+                                    {getPriorityLabel(taskData['Priorita'])}
+                                </span>
+                            )}
+                        </div>
                     </div>
 
                     <div className="task-detail-section">
