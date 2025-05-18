@@ -37,7 +37,14 @@ const ManageUsersModal = ({ isOpen, onClose, taskList, onUpdate }) => {
                         }
                     })
                 );
-                setUsers(userDetails);
+
+                const sortedUsers = userDetails.sort((a, b) => {
+                    if (a.id === taskList.owner) return -1;
+                    if (b.id === taskList.owner) return 1;
+                    return 0;
+                });
+
+                setUsers(sortedUsers);
             } else {
                 setUsers([]);
             }
@@ -108,7 +115,6 @@ const ManageUsersModal = ({ isOpen, onClose, taskList, onUpdate }) => {
     };
 
     const handleRemoveUser = async (userId) => {
-        // Don't allow removing owner
         if (userId === taskList.owner) {
             setError('Cannot remove the owner of the task list');
             return;
