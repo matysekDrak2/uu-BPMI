@@ -21,6 +21,11 @@ const ManageUsersModal = ({ isOpen, onClose, taskList, onUpdate }) => {
         try {
             const allUserIds = [...(taskList.members || []), ...(taskList.admins || [])];
 
+            // Add owner to the list if not already included
+            if (taskList.owner && !allUserIds.includes(taskList.owner)) {
+                allUserIds.push(taskList.owner);
+            }
+
             if (allUserIds.length > 0) {
                 const userDetails = await Promise.all(
                     allUserIds.map(async userId => {
@@ -103,6 +108,12 @@ const ManageUsersModal = ({ isOpen, onClose, taskList, onUpdate }) => {
     };
 
     const handleRemoveUser = async (userId) => {
+        // Don't allow removing owner
+        if (userId === taskList.owner) {
+            setError('Cannot remove the owner of the task list');
+            return;
+        }
+
         setLoading(true);
         setError(null);
 
@@ -176,14 +187,23 @@ const ManageUsersModal = ({ isOpen, onClose, taskList, onUpdate }) => {
                             <ul>
                                 {users.map(user => (
                                     <li key={user.id}>
-                                        <span>{user.name} ({user.email})</span>
-                                        <button
-                                            onClick={() => handleRemoveUser(user.id)}
-                                            disabled={loading}
-                                            className="remove-button"
-                                        >
-                                            Remove
-                                        </button>
+                                        <span>
+                                            {user.name} ({user.email})
+                                            {taskList.owner === user.id ? (
+                                                <span className="user-tag owner-tag">Owner</span>
+                                            ) : (
+                                                <span className="user-tag member-tag">Member</span>
+                                            )}
+                                        </span>
+                                        {taskList.owner !== user.id && (
+                                            <button
+                                                onClick={() => handleRemoveUser(user.id)}
+                                                disabled={loading}
+                                                className="remove-button"
+                                            >
+                                                Remove
+                                            </button>
+                                        )}
                                     </li>
                                 ))}
                             </ul>

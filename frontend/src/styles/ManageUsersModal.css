@@ -124,7 +124,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 0;
+    padding: 10px;
     border-bottom: 1px solid #eee;
 }
 
@@ -137,6 +137,27 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     margin-right: 10px;
+}
+
+/* User tags */
+.user-tag {
+    display: inline-block;
+    padding: 2px 6px;
+    margin-left: 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.owner-tag {
+    background-color: #FFC107;
+    color: #333;
+}
+
+.member-tag {
+    background-color: #2196F3;
+    color: white;
 }
 
 .remove-button {
