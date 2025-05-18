@@ -177,6 +177,7 @@
     font-weight: 500;
     font-size: 11px;
     white-space: nowrap;
+    transition: all 0.2s ease;
 }
 
 .priority-high {
@@ -333,16 +334,30 @@
 .task-detail-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: 16px;
     border-bottom: 1px solid #eee;
     padding-bottom: 12px;
+}
+
+.task-title-container {
+    flex: 1;
+    margin-right: 16px;
+    min-width: 0;
+}
+
+.task-priority-container {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
 }
 
 .task-detail-title {
     margin: 0;
     font-size: 18px;
     color: #333;
+    word-break: break-word;
 }
 
 .task-detail-section {
@@ -452,6 +467,42 @@
     flex-direction: column;
     gap: 8px;
     width: 100%;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.edit-name-container {
+    width: 100%;
+    flex: 1;
+    margin-right: 10px;
+}
+
+.edit-priority-container {
+    width: 150px;
+    margin-left: auto;
+}
+
+.priority-select {
+    padding: 6px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 16px;
+    padding-right: 32px;
 }
 
 .edit-input {
@@ -466,6 +517,7 @@
 .edit-input:focus {
     border-color: #2196f3;
     outline: none;
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
 }
 
 .edit-buttons {
@@ -481,6 +533,11 @@
     cursor: pointer;
     font-size: 12px;
     background-color: #f5f5f5;
+    transition: all 0.2s ease;
+}
+
+.edit-buttons button:hover {
+    background-color: #e0e0e0;
 }
 
 .edit-buttons button:first-child {
@@ -489,13 +546,37 @@
     border-color: #1976d2;
 }
 
+.edit-buttons button:first-child:hover:not(:disabled) {
+    background-color: #1976d2;
+}
+
 .edit-buttons button:first-child:disabled {
     background-color: #bbdefb;
     border-color: #bbdefb;
     cursor: not-allowed;
 }
 
-/* Styly pro přílohy */
+@media (max-width: 600px) {
+    .task-detail-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .task-detail-header h4 {
+        margin-bottom: 10px;
+    }
+
+    .edit-priority-container {
+        width: 100%;
+        margin-left: 0;
+        margin-top: 8px;
+    }
+
+    .task-priority {
+        margin-top: 5px;
+    }
+}
+
 .attachments-list {
     list-style: none;
     padding: 0;
