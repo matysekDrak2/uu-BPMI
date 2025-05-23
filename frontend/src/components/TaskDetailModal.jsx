@@ -107,6 +107,12 @@ const TaskDetailModal = ({ isOpen, task, onClose }) => {
     const saveEdit = async () => {
         if (!editing) return;
 
+        // Validate description length
+        if (editing === 'Popis' && editValue.length > 100) {
+            setError('Popis úkolu může mít maximálně 100 znaků');
+            return;
+        }
+
         setSaving(true);
         setError(null);
 
@@ -149,7 +155,18 @@ const TaskDetailModal = ({ isOpen, task, onClose }) => {
 
     const handleFileChange = (e) => {
         if (e.target.files.length > 0) {
-            setSelectedFile(e.target.files[0]);
+            const file = e.target.files[0];
+
+            // Kontrola velikosti souboru (50MB = 50 * 1024 * 1024 bytů)
+            const maxSize = 50 * 1024 * 1024;
+            if (file.size > maxSize) {
+                setError(`Soubor "${file.name}" je příliš velký. Maximální velikost je 50 MB.`);
+                e.target.value = null;
+                return;
+            }
+
+            setSelectedFile(file);
+            setError(null);
         }
     };
 
@@ -262,14 +279,27 @@ const TaskDetailModal = ({ isOpen, task, onClose }) => {
                         <h5>Popis</h5>
                         {editing === 'Popis' ? (
                             <div className="edit-container">
+                                <div className="edit-field-header">
+                                    <span className="character-count">
+                                        {editValue.length}/100 znaků
+                                    </span>
+                                </div>
                                 <textarea
                                     value={editValue}
                                     onChange={(e) => setEditValue(e.target.value)}
                                     rows="4"
-                                    className="edit-input"
+                                    className={`edit-input ${editValue.length > 100 ? 'input-error' : ''}`}
+                                    maxLength={100}
                                 />
+                                {editValue.length > 100 && (
+                                    <div className="field-error">
+                                        Popis úkolu může mít maximálně 100 znaků
+                                    </div>
+                                )}
                                 <div className="edit-buttons">
-                                    <button onClick={saveEdit} disabled={saving}>Uložit</button>
+                                    <button onClick={saveEdit} disabled={saving || editValue.length > 100}>
+                                        Uložit
+                                    </button>
                                     <button onClick={cancelEditing}>Zrušit</button>
                                 </div>
                             </div>
@@ -292,6 +322,7 @@ const TaskDetailModal = ({ isOpen, task, onClose }) => {
                                     value={editValue}
                                     onChange={(e) => setEditValue(e.target.value)}
                                     className="edit-input"
+                                    min={new Date().toISOString().split('T')[0]}
                                 />
                                 <div className="edit-buttons">
                                     <button onClick={saveEdit} disabled={saving}>Uložit</button>

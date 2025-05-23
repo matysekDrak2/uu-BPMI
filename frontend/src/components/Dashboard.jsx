@@ -85,6 +85,26 @@ const Dashboard = () => {
         window.location.href = '/login';
     };
 
+    const handleTaskListSelfRemoval = async (removedTaskListId) => {
+        try {
+            // Znovu načteme seznamy task listů
+            await loadTaskLists();
+
+            // Pokud byl odebrán aktivní task list, přepneme na jiný
+            if (activeTaskList === removedTaskListId) {
+                const updatedLists = await taskListService.getAllTaskLists();
+                if (updatedLists.length > 0) {
+                    setActiveTaskList(updatedLists[0].id);
+                } else {
+                    setActiveTaskList(null);
+                }
+            }
+        } catch (err) {
+            console.error('Error after self-removal:', err);
+            setError('Nepodařilo se aktualizovat seznamy úkolů');
+        }
+    };
+
     return (
         <div className="dashboard">
             <div className="dashboard-header">
@@ -127,6 +147,7 @@ const Dashboard = () => {
                         key={list.id}
                         isVisible={activeTaskList === list.id}
                         taskList={list}
+                        onTaskListSelfRemoval={handleTaskListSelfRemoval}
                     />
                 ))}
             </div>

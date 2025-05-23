@@ -38,12 +38,29 @@ const CreateTaskModal = ({ isOpen, onClose, onSubmit, taskListId }) => {
             ...taskData,
             [name]: value
         });
+
+        // Clear error when user modifies the field
+        if (error && (name === 'description' || name === 'title')) {
+            setError(null);
+        }
     };
 
     const handleFileChange = (e) => {
         const fileList = Array.from(e.target.files);
+
+        // Kontrola velikosti souborů (50MB = 50 * 1024 * 1024 bytů)
+        const maxSize = 50 * 1024 * 1024;
+        for (const file of fileList) {
+            if (file.size > maxSize) {
+                setError(`Soubor "${file.name}" je příliš velký. Maximální velikost je 50 MB.`);
+                e.target.value = null;
+                return;
+            }
+        }
+
         if (fileList.length + selectedFiles.length > MAX_FILES) {
             setError(`Můžete nahrát maximálně ${MAX_FILES} souborů.`);
+            e.target.value = null;
             return;
         }
 
@@ -62,6 +79,11 @@ const CreateTaskModal = ({ isOpen, onClose, onSubmit, taskListId }) => {
 
         if (!taskData.title.trim()) {
             setError('Název úkolu je povinný');
+            return;
+        }
+
+        if (taskData.description.length > 100) {
+            setError('Popis úkolu může mít maximálně 100 znaků');
             return;
         }
 
@@ -121,7 +143,12 @@ const CreateTaskModal = ({ isOpen, onClose, onSubmit, taskListId }) => {
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="description">Popis úkolu</label>
+                        <label htmlFor="description">
+                            Popis úkolu
+                            <span className="character-count">
+                                ({taskData.description.length}/100 znaků)
+                            </span>
+                        </label>
                         <textarea
                             id="description"
                             name="description"
@@ -129,7 +156,14 @@ const CreateTaskModal = ({ isOpen, onClose, onSubmit, taskListId }) => {
                             onChange={handleChange}
                             placeholder="Zadejte popis úkolu"
                             rows={3}
+                            maxLength={100}
+                            className={taskData.description.length > 100 ? 'input-error' : ''}
                         />
+                        {taskData.description.length > 100 && (
+                            <div className="field-error">
+                                Popis úkolu může mít maximálně 100 znaků
+                            </div>
+                        )}
                     </div>
 
                     <div className="form-group">
@@ -154,6 +188,7 @@ const CreateTaskModal = ({ isOpen, onClose, onSubmit, taskListId }) => {
                             name="deadline"
                             value={taskData.deadline}
                             onChange={handleChange}
+                            min={new Date().toISOString().split('T')[0]}
                         />
                     </div>
 
