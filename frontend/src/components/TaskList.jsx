@@ -8,7 +8,7 @@ import { taskService } from '../services/api';
 import {
     handleReorderTask,
     handleMoveTask
-} from './DragDropUtils';
+} from '../utils/DragDropUtils';
 import '../styles/TaskList.css';
 
 // Helper functions
@@ -126,7 +126,7 @@ const TaskList = ({ isVisible, taskList, onTaskListSelfRemoval }) => {
         e.dataTransfer.setData('text/plain', task.id);
     };
 
-    const handleDragEnd = (e) => {
+    const handleDragEnd = () => {
         setDraggedTask(null);
     };
 
@@ -189,7 +189,6 @@ const TaskList = ({ isVisible, taskList, onTaskListSelfRemoval }) => {
 
         const targetTaskCard = e.target.closest('.task-card');
         let insertId = null;
-        let insertPosition = 'before';
 
         if (targetTaskCard && targetTaskCard.getAttribute('data-id') !== taskId) {
             insertId = targetTaskCard.getAttribute('data-id');
@@ -199,22 +198,15 @@ const TaskList = ({ isVisible, taskList, onTaskListSelfRemoval }) => {
             setError(null);
 
             if (originalState === targetState) {
-                // Reorder v ramci stejneho sloupce
-                const updatedTasks = handleReorderTask(tasks, taskId, originalState, insertId, insertPosition);
+                // Reorder v ramci stejneho sloupce - jen lokalni zmena
+                const updatedTasks = handleReorderTask(tasks, taskId, originalState, insertId);
                 setTasks(updatedTasks);
-
-                // Uloz novou pozici na server
-                try {
-                    await taskService.updateTask(taskId, { state: targetState });
-                    console.log(`Pozice úkolu aktualizována: ${taskId}`);
-                } catch (err) {
-                    handleUpdateError(err);
-                }
+                console.log(`Pozice úkolu změněna lokálně: ${taskId}`);
                 return;
             }
 
             // Move mezi roznymi sloupci
-            const updatedTasks = handleMoveTask(tasks, taskId, originalState, targetState, insertId, insertPosition);
+            const updatedTasks = handleMoveTask(tasks, taskId, originalState, targetState, insertId);
             setTasks(updatedTasks);
 
             try {

@@ -3,29 +3,35 @@
  */
 
 /**
+ * Helper function to insert task at correct position
+ */
+const insertTaskAtPosition = (array, task, insertBeforeId) => {
+    if (insertBeforeId) {
+        const targetIndex = array.findIndex(t => t.id === insertBeforeId);
+        if (targetIndex !== -1) {
+            array.splice(targetIndex, 0, task);
+            return;
+        }
+    }
+    array.push(task);
+};
+
+/**
  * Handles task reordering within the same column
  */
-export const handleReorderTask = (tasks, taskId, state, insertBeforeId, insertPosition) => {
+export const handleReorderTask = (tasks, taskId, state, insertBeforeId) => {
     const updatedTasks = { ...tasks };
     const arrayKey = getArrayKeyFromState(state);
+    const array = updatedTasks[arrayKey];
 
-    const sourceIndex = updatedTasks[arrayKey].findIndex(t => t.id === taskId);
+    const sourceIndex = array.findIndex(t => t.id === taskId);
     if (sourceIndex === -1) return updatedTasks;
 
-    const taskToMove = updatedTasks[arrayKey][sourceIndex];
-    updatedTasks[arrayKey].splice(sourceIndex, 1);
+    // Remove task from current position
+    const [taskToMove] = array.splice(sourceIndex, 1);
 
-    if (insertBeforeId) {
-        const targetIndex = updatedTasks[arrayKey].findIndex(t => t.id === insertBeforeId);
-        if (targetIndex !== -1) {
-            const insertIndex = insertPosition === 'after' ? targetIndex + 1 : targetIndex;
-            updatedTasks[arrayKey].splice(insertIndex, 0, taskToMove);
-        } else {
-            updatedTasks[arrayKey].push(taskToMove);
-        }
-    } else {
-        updatedTasks[arrayKey].push(taskToMove);
-    }
+    // Insert at new position
+    insertTaskAtPosition(array, taskToMove, insertBeforeId);
 
     return updatedTasks;
 };
@@ -33,29 +39,30 @@ export const handleReorderTask = (tasks, taskId, state, insertBeforeId, insertPo
 /**
  * Handles moving a task between different columns
  */
-export const handleMoveTask = (tasks, taskId, originalState, targetState, insertBeforeId, insertPosition) => {
+export const handleMoveTask = (tasks, taskId, originalState, targetState, insertBeforeId) => {
     const updatedTasks = { ...tasks };
+    const sourceArray = updatedTasks[getArrayKeyFromState(originalState)];
+    const targetArray = updatedTasks[getArrayKeyFromState(targetState)];
 
-    const sourceArray = getArrayKeyFromState(originalState);
-    const targetArray = getArrayKeyFromState(targetState);
+    const sourceIndex = sourceArray.findIndex(t => t.id === taskId);
+    if (sourceIndex === -1) return updatedTasks;
 
-    const taskIndex = updatedTasks[sourceArray].findIndex(t => t.id === taskId);
-    if (taskIndex === -1) return updatedTasks;
+    // Remove task from source column
+    const [taskToMove] = sourceArray.splice(sourceIndex, 1);
 
-    const taskToMove = { ...updatedTasks[sourceArray][taskIndex], state: targetState };
-    updatedTasks[sourceArray] = updatedTasks[sourceArray].filter(t => t.id !== taskId);
-
-    if (insertBeforeId) {
-        const targetIndex = updatedTasks[targetArray].findIndex(t => t.id === insertBeforeId);
-        if (targetIndex !== -1) {
-            const insertIndex = insertPosition === 'after' ? targetIndex + 1 : targetIndex;
-            updatedTasks[targetArray].splice(insertIndex, 0, taskToMove);
-        } else {
-            updatedTasks[targetArray].push(taskToMove);
-        }
-    } else {
-        updatedTasks[targetArray].push(taskToMove);
-    }
+    // Update task state and insert into target column
+    taskToMove.state = targetState;
+    insertTaskAtPosition(targetArray, taskToMove, insertBeforeId);
 
     return updatedTasks;
 };
+
+/**
+ * Converts state number to corresponding array key
+ */
+export const getArrayKeyFromState = (state) => {
+    if (state === 0) return 'open';
+    if (state === 1) return 'inProgress';
+    if (state === 2) return 'completed';
+    return 'open';
+}; 
