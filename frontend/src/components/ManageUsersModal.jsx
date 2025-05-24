@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { taskListService, userService } from '../services/api';
+import { taskListService, userService, authService } from '../services/api';
 import '../styles/ManageUsersModal.css';
 
 const ManageUsersModal = ({ isOpen, onClose, taskList, onUpdate }) => {
@@ -7,12 +7,23 @@ const ManageUsersModal = ({ isOpen, onClose, taskList, onUpdate }) => {
     const [users, setUsers] = useState([]);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [currentUserId, setCurrentUserId] = useState(null);
 
     useEffect(() => {
         if (isOpen && taskList) {
             loadUsers();
+            loadCurrentUser();
         }
     }, [isOpen, taskList]);
+
+    const loadCurrentUser = async () => {
+        try {
+            const userData = await authService.getUserData();
+            setCurrentUserId(userData.userId);
+        } catch (err) {
+            console.error('Error loading current user:', err);
+        }
+    };
 
     const loadUsers = async () => {
         setLoading(true);
@@ -85,8 +96,11 @@ const ManageUsersModal = ({ isOpen, onClose, taskList, onUpdate }) => {
                 return;
             }
 
-            const newData = { ...taskList };
-            if (!newData.members) newData.members = [];
+            const newData = {
+                ...taskList,
+                members: [...(taskList.members || [])],
+                admins: [...(taskList.admins || [])]
+            };
 
             if (newData.members.includes(foundUser.id)) {
                 setError(`Uživatel ${foundUser.name || userEmail} je již členem`);
@@ -107,8 +121,20 @@ const ManageUsersModal = ({ isOpen, onClose, taskList, onUpdate }) => {
                 setError(null);
             }
         } catch (err) {
-            setError(`Nepodařilo se přidat uživatele: ${err.message}`);
             console.error('Error adding user:', err);
+
+            // Kontrola, jestli se jedná o chybu autorizace
+            if (err.message && (
+                err.message.includes('Neoprávněný přístup') ||
+                err.message.includes('Unauthorized') ||
+                err.message.includes('403') ||
+                err.message.includes('Musíte být vlastník') ||
+                err.message.includes('administrátor')
+            )) {
+                setError('Nemáte oprávnění přidávat uživatele do tohoto seznamu úkolů');
+            } else {
+                setError(`Nepodařilo se přidat uživatele: ${err.message || 'Neznámá chyba'}`);
+            }
         } finally {
             setLoading(false);
         }
@@ -120,19 +146,20 @@ const ManageUsersModal = ({ isOpen, onClose, taskList, onUpdate }) => {
             return;
         }
 
+        const isSelfRemoval = userId === currentUserId;
+
         setLoading(true);
         setError(null);
 
         try {
-            const newData = { ...taskList };
+            const newData = {
+                ...taskList,
+                members: [...(taskList.members || [])],
+                admins: [...(taskList.admins || [])]
+            };
 
-            if (newData.members) {
-                newData.members = newData.members.filter(id => id !== userId);
-            }
-
-            if (newData.admins) {
-                newData.admins = newData.admins.filter(id => id !== userId);
-            }
+            newData.members = newData.members.filter(id => id !== userId);
+            newData.admins = newData.admins.filter(id => id !== userId);
 
             const updatedTaskList = await taskListService.updateTaskList(taskList.id, {
                 members: newData.members || [],
@@ -140,8 +167,15 @@ const ManageUsersModal = ({ isOpen, onClose, taskList, onUpdate }) => {
             });
 
             if (updatedTaskList) {
-                onUpdate(updatedTaskList);
-                loadUsers();
+                if (isSelfRemoval) {
+                    // Pokud se odhlašujeme sami, zavřeme modál a předáme info na Dashboard
+                    onClose();
+                    onUpdate(updatedTaskList, true); // true = isSelfRemoval
+                } else {
+                    // Běžné odebrání jiného uživatele
+                    onUpdate(updatedTaskList);
+                    loadUsers();
+                }
             }
         } catch (err) {
             setError(`Nepodařilo se odstranit uživatele: ${err.message}`);

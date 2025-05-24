@@ -11,16 +11,10 @@ const parseTaskBasicInfo = (text) => {
     for (const line of lines) {
         if (line.startsWith('Název:')) {
             title = line.substring(6).trim();
-            if (title.length > 15) {
-                title = title.substring(0, 15) + '...';
-            }
         } else if (line.startsWith('Priorita:')) {
             priority = line.substring(9).trim();
         } else if (line.startsWith('Popis:')) {
             description = line.substring(6).trim();
-            if (description.length > 35) {
-                description = description.substring(0, 35) + '...';
-            }
         }
     }
 

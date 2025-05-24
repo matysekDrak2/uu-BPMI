@@ -152,11 +152,11 @@ const authService = {
             }
 
             const response = await fetch(API_BASE_URL + '/user/authTest', {
-                method: 'POST',
+                method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ sessionKey: sessionId }),
+                    'sessionkey': sessionId
+                }
             });
 
             return await handleResponse(response, 'Nepodařilo se načíst data uživatele');
@@ -264,12 +264,6 @@ const taskListService = {
                     newData: newData
                 }),
             });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Task list update failed with response:', errorText);
-                throw new Error(errorText || 'Nepodařilo se aktualizovat seznam úkolů');
-            }
 
             return await handleResponse(response, 'Nepodařilo se aktualizovat seznam úkolů');
         } catch (error) {

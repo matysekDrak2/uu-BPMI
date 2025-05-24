@@ -13,9 +13,7 @@ router.use("/signin", (req, res) => {
 })
 
 const authTest = require('./authTest');
-router.post('/authTest', (req, res) => {
-    authTest(req, res);
-})
+router.use('/authTest', authTest);
 
 const auth = require('../session/auth')
 const getTaskLists = require("./getTaskLists");

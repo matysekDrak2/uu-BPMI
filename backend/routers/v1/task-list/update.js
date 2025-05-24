@@ -36,8 +36,29 @@ module.exports = function updateTaskListIfAuthorized(req, res) {
         return res.status(404).json({ error: 'Task list not found' });
     }
 
-    if (taskList.owner !== userId && (!taskList.admins.includes(userId))) {
-        return res.status(403).json({ error: 'Unauthorized: You must be the owner or an admin to update this task list' });
+    const isOwnerOrAdmin = taskList.owner === userId || taskList.admins.includes(userId);
+
+    // Check if this is a self-removal from members only
+    const isSelfRemovalFromMembers = (
+        !isOwnerOrAdmin &&
+        taskList.members.includes(userId) &&
+        newData.members &&
+        Array.isArray(newData.members) &&
+        !newData.members.includes(userId) &&
+        // Exactly one member should be removed (the current user)
+        newData.members.length === taskList.members.length - 1 &&
+        // All remaining members should be from the original list (no new members added)
+        newData.members.every(id => taskList.members.includes(id)) &&
+        // If admins are provided, they should remain unchanged
+        (!newData.admins || (Array.isArray(newData.admins) &&
+            taskList.admins.length === newData.admins.length &&
+            taskList.admins.every(id => newData.admins.includes(id)))) &&
+        // No other fields should be changed
+        Object.keys(newData).every(key => key === 'members' || key === 'admins')
+    );
+
+    if (!isOwnerOrAdmin && !isSelfRemovalFromMembers) {
+        return res.status(403).json({ error: 'NUnauthorized: You must be the owner or an admin to update this task list or remove yourself from the members' });
     }
 
     try {

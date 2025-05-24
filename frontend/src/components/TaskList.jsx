@@ -25,16 +25,10 @@ const parseTaskBasicInfo = (text) => {
     for (const line of lines) {
         if (line.startsWith('Název:')) {
             title = line.substring(6).trim();
-            if (title.length > 15) {
-                title = title.substring(0, 15) + '...';
-            }
         } else if (line.startsWith('Priorita:')) {
             priority = line.substring(9).trim();
         } else if (line.startsWith('Popis:')) {
             description = line.substring(6).trim();
-            if (description.length > 35) {
-                description = description.substring(0, 35) + '...';
-            }
         }
     }
 
@@ -50,7 +44,7 @@ const getPriorityLabel = (priority) => {
 };
 
 // Main Component
-const TaskList = ({ isVisible, taskList }) => {
+const TaskList = ({ isVisible, taskList, onTaskListSelfRemoval }) => {
     const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [isManageUsersModalOpen, setIsManageUsersModalOpen] = useState(false);
@@ -250,8 +244,13 @@ const TaskList = ({ isVisible, taskList }) => {
         setIsManageUsersModalOpen(true);
     };
 
-    const handleTaskListUpdate = (updatedTaskList) => {
+    const handleTaskListUpdate = (updatedTaskList, isSelfRemoval = false) => {
         setCurrentTaskList(updatedTaskList);
+
+        // Pokud se jedná o self-removal, předáme informaci na Dashboard
+        if (isSelfRemoval && typeof onTaskListSelfRemoval === 'function') {
+            onTaskListSelfRemoval(updatedTaskList.id);
+        }
     };
 
     // render task card for each column
