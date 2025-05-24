@@ -7,9 +7,7 @@ import TaskColumn from './TaskColumn';
 import { taskService } from '../services/api';
 import {
     handleReorderTask,
-    handleMoveTask,
-    updateTaskWithNewId,
-    getArrayKeyFromState
+    handleMoveTask
 } from './DragDropUtils';
 import '../styles/TaskList.css';
 
@@ -126,36 +124,29 @@ const TaskList = ({ isVisible, taskList, onTaskListSelfRemoval }) => {
         setDraggedTask(task);
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', task.id);
-
-        setTimeout(() => {
-            e.target.classList.add('dragging');
-        }, 0);
     };
 
     const handleDragEnd = (e) => {
-        e.target.classList.remove('dragging');
         setDraggedTask(null);
     };
 
     const handleDragOver = (e) => {
+        // jinak se mi bude furt vracet na puvodni pozici
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
 
-        const taskCard = e.target.closest('.task-card');
-        if (taskCard && draggedTask && taskCard.id !== draggedTask.id) {
-            const rect = taskCard.getBoundingClientRect();
-            const y = e.clientY - rect.top;
+        // nejdrive odstran vsechny existujici drop-top tridy
+        document.querySelectorAll('.drop-top').forEach(el => {
+            el.classList.remove('drop-top');
+        });
 
-            if (y < rect.height / 2) {
-                taskCard.classList.remove('drop-bottom');
-                taskCard.classList.add('drop-top');
-            } else {
-                taskCard.classList.remove('drop-top');
-                taskCard.classList.add('drop-bottom');
-            }
+        // logika pro zobrazeni modreho borderu nad taskem, abychom vedeli, kam se presouva task
+        const taskCard = e.target.closest('.task-card'); // metoda ktera dokaze najit taskCard, ktery je v parentu tasku
+        if (taskCard && draggedTask && taskCard.id !== draggedTask.id) {
+            taskCard.classList.add('drop-top');
         }
     };
-
+    // slouzi pro zvyrazneni sloupce, do ktereho se presouva task
     const handleDragEnter = (e) => {
         e.preventDefault();
         if (e.currentTarget.classList.contains('column')) {
@@ -163,14 +154,16 @@ const TaskList = ({ isVisible, taskList, onTaskListSelfRemoval }) => {
         }
     };
 
+    // slouzi pro zruseni zvyrazneni sloupce, ze ktereho se presouva task
     const handleDragLeave = (e) => {
+        // zruseni zvyrazeni sloupce, odkud se presouva
         if (e.currentTarget.classList.contains('column') && !e.currentTarget.contains(e.relatedTarget)) {
             e.currentTarget.classList.remove('drag-over');
         }
-
+        // zruseni zvyrazeni tasku, ktery se presouva
         const taskCard = e.target.closest('.task-card');
         if (taskCard) {
-            taskCard.classList.remove('drop-top', 'drop-bottom');
+            taskCard.classList.remove('drop-top');
         }
     };
 
@@ -181,8 +174,8 @@ const TaskList = ({ isVisible, taskList, onTaskListSelfRemoval }) => {
             e.currentTarget.classList.remove('drag-over');
         }
 
-        document.querySelectorAll('.drop-top, .drop-bottom').forEach(el => {
-            el.classList.remove('drop-top', 'drop-bottom');
+        document.querySelectorAll('.drop-top').forEach(el => {
+            el.classList.remove('drop-top');
         });
 
         if (!draggedTask) return;
@@ -195,36 +188,39 @@ const TaskList = ({ isVisible, taskList, onTaskListSelfRemoval }) => {
         }
 
         const targetTaskCard = e.target.closest('.task-card');
-        let insertBeforeId = null;
+        let insertId = null;
         let insertPosition = 'before';
 
         if (targetTaskCard && targetTaskCard.getAttribute('data-id') !== taskId) {
-            insertBeforeId = targetTaskCard.getAttribute('data-id');
-            if (targetTaskCard.classList.contains('drop-bottom')) {
-                insertPosition = 'after';
-            }
+            insertId = targetTaskCard.getAttribute('data-id');
         }
 
         try {
             setError(null);
 
             if (originalState === targetState) {
-                const updatedTasks = handleReorderTask(tasks, taskId, originalState, insertBeforeId, insertPosition);
+                // Reorder v ramci stejneho sloupce
+                const updatedTasks = handleReorderTask(tasks, taskId, originalState, insertId, insertPosition);
                 setTasks(updatedTasks);
+
+                // Uloz novou pozici na server
+                try {
+                    await taskService.updateTask(taskId, { state: targetState });
+                    console.log(`Pozice úkolu aktualizována: ${taskId}`);
+                } catch (err) {
+                    handleUpdateError(err);
+                }
                 return;
             }
 
-            const updatedTasks = handleMoveTask(tasks, taskId, originalState, targetState, insertBeforeId, insertPosition);
+            // Move mezi roznymi sloupci
+            const updatedTasks = handleMoveTask(tasks, taskId, originalState, targetState, insertId, insertPosition);
             setTasks(updatedTasks);
 
             try {
-                const updatedTaskResponse = await taskService.updateTask(taskId, { state: targetState });
-
-                if (updatedTaskResponse && updatedTaskResponse.id) {
-                    const tasksWithNewId = updateTaskWithNewId(updatedTasks, targetState, taskId, updatedTaskResponse);
-                    setTasks(tasksWithNewId);
-                    console.log(`Úkol aktualizován, původní ID: ${taskId}, nové ID: ${updatedTaskResponse.id}`);
-                }
+                // Jen zmena stavu, ID zustava stejne
+                await taskService.updateTask(taskId, { state: targetState });
+                console.log(`Stav úkolu aktualizován: ${taskId} -> ${targetState}`);
             } catch (err) {
                 handleUpdateError(err);
             }

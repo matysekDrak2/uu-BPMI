@@ -61,27 +61,6 @@ export const handleMoveTask = (tasks, taskId, originalState, targetState, insert
 };
 
 /**
- * Updates task with new ID after backend update
- */
-export const updateTaskWithNewId = (tasks, targetState, oldTaskId, updatedTaskResponse) => {
-    const targetArray = getArrayKeyFromState(targetState);
-    const newTaskId = updatedTaskResponse.id;
-
-    const tasksWithNewId = { ...tasks };
-    const taskToUpdateIndex = tasksWithNewId[targetArray].findIndex(t => t.id === oldTaskId);
-
-    if (taskToUpdateIndex !== -1) {
-        tasksWithNewId[targetArray][taskToUpdateIndex] = {
-            ...tasksWithNewId[targetArray][taskToUpdateIndex],
-            id: newTaskId,
-            ...updatedTaskResponse
-        };
-    }
-
-    return tasksWithNewId;
-};
-
-/**
  * Converts state number to corresponding array key
  */
 export const getArrayKeyFromState = (state) => {
